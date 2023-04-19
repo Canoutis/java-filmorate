@@ -23,7 +23,7 @@ public class UserController {
 
     @GetMapping("/users")
     public List<User> findAll() {
-        return new ArrayList<> (hmUsers.values());
+        return new ArrayList<>(hmUsers.values());
     }
 
     @PostMapping(value = "/user")

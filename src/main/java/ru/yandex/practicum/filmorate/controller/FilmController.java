@@ -24,7 +24,7 @@ public class FilmController {
 
     @GetMapping("/films")
     public List<Film> findAll() {
-        return new ArrayList<> (hmFilms.values());
+        return new ArrayList<>(hmFilms.values());
     }
 
     @PostMapping(value = "/film")

@@ -15,12 +15,12 @@ public class FilmControllerTest {
     FilmController controller;
 
     @BeforeEach
-    void beforeEach(){
+    void beforeEach() {
         controller = new FilmController();
     }
 
     @Test
-    void shouldThrowExceptionWithEmptyName(){
+    void shouldThrowExceptionWithEmptyName() {
         Film film = Film.builder()
                 .name("")
                 .description("description")
@@ -31,7 +31,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    void shouldThrowExceptionWithLongDescription(){
+    void shouldThrowExceptionWithLongDescription() {
         Film film = Film.builder()
                 .name("The Lincoln Lawyer")
                 .description("Микки Холлер – блестящий и удачливый адвокат из Лос-Анджелеса, чей яркий имидж и образ " +
@@ -47,7 +47,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    void shouldThrowExceptionWithIncorrectDuration(){
+    void shouldThrowExceptionWithIncorrectDuration() {
         Film film = Film.builder()
                 .name("Film")
                 .description("Description")
@@ -58,7 +58,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    void shouldThrowExceptionWithUnbelievableReleaseDate(){
+    void shouldThrowExceptionWithUnbelievableReleaseDate() {
         Film film = Film.builder()
                 .name("Film")
                 .description("Description")
@@ -67,6 +67,7 @@ public class FilmControllerTest {
                 .build();
         Assertions.assertThrows(FilmSaveException.class, () -> controller.create(film));
     }
+
     @Test
     void shouldBeOkWithCorrectFilm() {
         Film film = Film.builder()
