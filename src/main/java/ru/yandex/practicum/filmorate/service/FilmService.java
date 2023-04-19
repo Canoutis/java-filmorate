@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -9,9 +10,13 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
+@Slf4j
 public class FilmService {
 
     private final FilmStorage filmStorage;
@@ -54,11 +59,69 @@ public class FilmService {
         return filmStorage.removeUserLike(filmId, userId);
     }
 
-    public List<Film> getPopularFilms(int count) {
-        return filmStorage.getPopularFilms(count);
+    public List<Film> getPopular(int count, int genreId, int year) {
+        if (genreId == 0 && year == 0) {
+            return filmStorage.getPopularFilms(count);
+        } else if (genreId != 0 && year != 0) {
+            return filmStorage.getPopularByGenreAndYear(genreId, year, count);
+        } else if (genreId != 0) {
+            return filmStorage.getPopularByGenre(genreId, count);
+        } else {
+            return filmStorage.getPopularByYear(year, count);
+        }
+    }
+
+    public List<Film> getDirectorSortedPopularFilms(int directorId, String sortBy) {
+        if ("year".equals(sortBy)) {
+            return filmStorage.getDirectorFilmsSortedByYear(directorId);
+        } else {
+            return filmStorage.getDirectorFilmsSortedByLikes(directorId);
+        }
+    }
+
+    public void removeFilmById(int filmId) {
+        filmStorage.removeFilmById(filmId);
+    }
+
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        List<Film> userFilms = filmStorage.getFilmsByUserId(userId);
+        List<Film> friendFilms = filmStorage.getFilmsByFriendId(friendId);
+
+        List<Film> commonFilms = new ArrayList<>();
+        for (Film film : userFilms) {
+            if (friendFilms.contains(film)) {
+                commonFilms.add(film);
+            }
+        }
+        Collections.sort(commonFilms, Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed());
+        return commonFilms;
     }
 
     private boolean isInvalidFilm(Film film) {
         return film.getReleaseDate().isBefore(MIN_POSSIBLE_DATE);
     }
+
+    public List<Film> filmSearch(String query, String searchBy) {
+        List<Film> films;
+
+        if (searchBy.contains("title") && searchBy.contains("director")) {
+            films = filmStorage.findByTitleContainingOrDirectorContaining(query, query);
+            log.info("Поиск по названию и режиссеру = {}", query);
+        } else if (searchBy.equals("title")) {
+            films = filmStorage.findByTitleContaining(query);
+            log.info("Поиск по названию = {}", query);
+        } else if (searchBy.equals("director")) {
+            films = filmStorage.findByDirectorContaining(query);
+            log.info("Поиск по режиссеру = {}", query);
+        } else {
+            films = Collections.emptyList();
+            log.info("Поиск можно сделать только по режиссеру и названию");
+        }
+        return films;
+    }
+
+    public List<Film> getRecommendations(int userId) {
+        return filmStorage.getRecommendations(userId);
+    }
+
 }
