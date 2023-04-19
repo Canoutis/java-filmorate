@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
@@ -28,12 +27,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -72,10 +69,17 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private Map<Integer, List<Genre>> loadFilmsGenres(List<Film> films) {
-        List<Integer> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
+        return loadFilmsGenresByFilmsIds(films.stream().map(Film::getId).collect(Collectors.toList()));
+    }
+
+    private List<Genre> loadFilmGenresByFilmId(int filmId) {
+        return loadFilmsGenresByFilmsIds(List.of(filmId)).getOrDefault(filmId, Collections.emptyList());
+    }
+
+    private Map<Integer, List<Genre>> loadFilmsGenresByFilmsIds(List<Integer> filmsIds) {
         Map<Integer, List<Genre>> filmGenresMap = new HashMap<>();
-        if (!filmIds.isEmpty()) {
-            String questionMarks = String.join(", ", Collections.nCopies(filmIds.size(), "?"));
+        if (!filmsIds.isEmpty()) {
+            String questionMarks = String.join(", ", Collections.nCopies(filmsIds.size(), "?"));
             String query = "select fg.film_id, g.genre_id, g.name " +
                     "from genre g inner " +
                     "join film_genre fg on fg.genre_id = g.genre_id " +
@@ -84,16 +88,23 @@ public class FilmDbStorage implements FilmStorage {
                 int filmId = rs.getInt("film_id");
                 Genre genre = new Genre(rs.getInt("genre_id"), rs.getString("name"));
                 filmGenresMap.computeIfAbsent(filmId, key -> new ArrayList<>()).add(genre);
-            }, filmIds.toArray());
+            }, filmsIds.toArray());
         }
         return filmGenresMap;
     }
 
     private Map<Integer, List<Director>> loadFilmsDirectors(List<Film> films) {
-        List<Integer> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
+        return loadFilmsDirectorsByFilmsIds(films.stream().map(Film::getId).collect(Collectors.toList()));
+    }
+
+    private List<Director> loadFilmDirectorsByFilmId(int filmId) {
+        return loadFilmsDirectorsByFilmsIds(List.of(filmId)).getOrDefault(filmId, Collections.emptyList());
+    }
+
+    private Map<Integer, List<Director>> loadFilmsDirectorsByFilmsIds(List<Integer> filmsIds) {
         Map<Integer, List<Director>> filmDirectorsMap = new HashMap<>();
-        if (!filmIds.isEmpty()) {
-            String questionMarks = String.join(", ", Collections.nCopies(filmIds.size(), "?"));
+        if (!filmsIds.isEmpty()) {
+            String questionMarks = String.join(", ", Collections.nCopies(filmsIds.size(), "?"));
             String query = "select fd.film_id, d.director_id, d.name " +
                     "from director d inner " +
                     "join film_director fd on fd.director_id = d.director_id " +
@@ -102,7 +113,7 @@ public class FilmDbStorage implements FilmStorage {
                 int filmId = rs.getInt("film_id");
                 Director director = new Director(rs.getInt("director_id"), rs.getString("name"));
                 filmDirectorsMap.computeIfAbsent(filmId, key -> new ArrayList<>()).add(director);
-            }, filmIds.toArray());
+            }, filmsIds.toArray());
         }
         return filmDirectorsMap;
     }
@@ -164,33 +175,15 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-    public List<Genre> getFilmGenresByFilmId(int filmId) {
-        SqlRowSet filmGenreRows = jdbcTemplate.queryForRowSet("select * from film_genre where film_id=?", filmId);
-        List<Genre> filmGenres = new ArrayList<>();
-        while (filmGenreRows.next()) {
-            filmGenres.add(genreDao.getGenreById(filmGenreRows.getInt("genre_id")));
-        }
-        return filmGenres;
-    }
-
-    public List<Director> getFilmDirectorsByFilmId(int filmId) {
-        SqlRowSet filmDirectorRows = jdbcTemplate.queryForRowSet("select * from film_director where film_id=?", filmId);
-        List<Director> filmDirectors = new ArrayList<>();
-        while (filmDirectorRows.next()) {
-            Optional<Director> director = directorDao.getDirectorById(filmDirectorRows.getInt("director_id"));
-            director.ifPresent(filmDirectors::add);
-        }
-        return filmDirectors;
-    }
 
     private Collection<Genre> addFilmGenresByFilmId(int filmId, Collection<Genre> filmGenres) {
         filmGenres.forEach(genre -> addFilmGenreByFilmId(filmId, genre));
-        return getFilmGenresByFilmId(filmId);
+        return loadFilmGenresByFilmId(filmId);
     }
 
     private Collection<Director> addFilmDirectorsByFilmId(int filmId, Collection<Director> filmDirectors) {
         filmDirectors.forEach(director -> addFilmDirectorByFilmId(filmId, director));
-        return getFilmDirectorsByFilmId(filmId);
+        return loadFilmDirectorsByFilmId(filmId);
     }
 
     private void removeFilmGenresByFilmId(int filmId, Collection<Genre> filmGenres) {
@@ -492,7 +485,6 @@ public class FilmDbStorage implements FilmStorage {
             film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
             film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
         }
-        films.sort(Comparator.comparingInt(film -> film.getLikes().size()));
         Collections.reverse(films);
         return films;
     }

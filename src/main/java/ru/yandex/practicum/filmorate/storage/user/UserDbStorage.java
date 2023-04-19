@@ -18,10 +18,8 @@ import ru.yandex.practicum.filmorate.utils.Operation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -150,39 +148,44 @@ public class UserDbStorage implements UserStorage {
     @Override
     public List<User> getUserFriends(int userId) {
         getUserById(userId);
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet("select u.* " +
-                        "from user u " +
-                        "where u.user_id in ( " +
-                        "  select fr.target_user_id " +
-                        "  from friend_request fr " +
-                        "  where fr.initiator_user_id = ? " +
-                        "  union " +
-                        "  select fr.initiator_user_id " +
-                        "  from friend_request fr " +
-                        "  where fr.target_user_id = ? and fr.confirmed = true" +
-                        ")",
-                userId, userId);
-        List<User> userList = new ArrayList<>();
-        while (userRows.next()) {
-            User user = new User(
-                    userRows.getInt("user_id"),
-                    userRows.getString("email"),
-                    userRows.getString("login"),
-                    userRows.getString("name"),
-                    Objects.requireNonNull(userRows.getDate("birthday")).toLocalDate()
-            );
-            userList.add(user);
-        }
-        return userList;
+        return jdbcTemplate.query("select u.* " +
+                "from user u " +
+                "where u.user_id in ( " +
+                "  select fr.target_user_id " +
+                "  from friend_request fr " +
+                "  where fr.initiator_user_id = ? " +
+                "  union " +
+                "  select fr.initiator_user_id " +
+                "  from friend_request fr " +
+                "  where fr.target_user_id = ? and fr.confirmed = true" +
+                ")", this::makeUser, userId, userId);
     }
 
     @Override
     public List<User> getMutualFriends(int userId, int targetId) {
-        List<User> targetFriends = getUserFriends(targetId);
-        List<User> userFriends = getUserFriends(userId);
-        return targetFriends.stream()
-                .filter(userFriends::contains)
-                .collect(Collectors.toList());
+        return jdbcTemplate.query("select u.* " +
+                "from user u " +
+                "where u.user_id in ( " +
+                "    select uf.target_user_id " +
+                "    from ( " +
+                "        select fr.target_user_id " +
+                "        from friend_request fr " +
+                "        where fr.initiator_user_id = ?  " +
+                "        union " +
+                "        select fr.initiator_user_id " +
+                "        from friend_request fr " +
+                "        where fr.target_user_id = ? and fr.confirmed = true " +
+                "    ) uf " +
+                "    join ( " +
+                "        select fr.target_user_id " +
+                "        from friend_request fr " +
+                "        where fr.initiator_user_id = ?  " +
+                "        union " +
+                "        select fr.initiator_user_id " +
+                "        from friend_request fr " +
+                "        where fr.target_user_id = ? and fr.confirmed = true " +
+                "    ) tf on uf.target_user_id = tf.target_user_id " +
+                ");", this::makeUser, userId, userId, targetId, targetId);
     }
 
     @Override

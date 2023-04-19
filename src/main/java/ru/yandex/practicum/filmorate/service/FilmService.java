@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -93,7 +92,6 @@ public class FilmService {
                 commonFilms.add(film);
             }
         }
-        Collections.sort(commonFilms, Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed());
         return commonFilms;
     }
 
