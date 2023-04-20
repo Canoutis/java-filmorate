@@ -33,7 +33,7 @@ public class UserController {
             log.warn("Ошибка создания пользователя. Ошибка входных данных! " + user);
             throw new UserSaveException("Ошибка создания пользователя. Ошибка входных данных!");
         } else {
-            if (user.getName().isEmpty()) user.setName(user.getLogin());
+            if (user.getName() == null || user.getName().isEmpty()) user.setName(user.getLogin());
             user.setId(++generationId);
             hmUsers.put(user.getId(), user);
             return user;
@@ -43,7 +43,7 @@ public class UserController {
     @PutMapping(value = "/users")
     public User update(@Valid @RequestBody User user) {
         if (!user.getEmail().contains("@") || user.getLogin().isEmpty() || user.getLogin().contains(" ")
-                || user.getBirthday().isAfter(LocalDate.now())) {
+                || user.getBirthday().isAfter(LocalDate.now()) || !hmUsers.containsKey(user.getId())) {
             log.warn("Ошибка обновления пользователя с id={}. Ошибка входных данных! " + user, user.getId());
             throw new UserSaveException("Ошибка создания пользователя. Ошибка входных данных!");
         } else {

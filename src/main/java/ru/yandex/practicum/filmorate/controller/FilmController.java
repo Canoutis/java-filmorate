@@ -45,7 +45,7 @@ public class FilmController {
     public Film update(@Valid @RequestBody Film film) {
         if (film.getName().isEmpty() || film.getDescription().length() > 200
                 || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))
-                || film.getDuration() <= 0) {
+                || film.getDuration() <= 0 || !hmFilms.containsKey(film.getId())) {
             log.warn("Ошибка обновления фильма с id={}. Ошибка входных данных! " + film, film.getId());
             throw new FilmSaveException("Ошибка входных данных!");
         } else {
