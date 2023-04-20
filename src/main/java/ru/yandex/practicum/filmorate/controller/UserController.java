@@ -18,8 +18,8 @@ import java.util.List;
 @Slf4j
 @RestController
 public class UserController {
-    public static int generationId = 0;
-    private HashMap<Integer, User> hmUsers = new HashMap<>();
+    private int generationId = 0;
+    private final HashMap<Integer, User> hmUsers = new HashMap<>();
 
     @GetMapping("/users")
     public List<User> findAll() {
@@ -28,8 +28,7 @@ public class UserController {
 
     @PostMapping(value = "/users")
     public User create(@Valid @RequestBody User user) {
-        if (!user.getEmail().contains("@") || user.getLogin().isEmpty() || user.getLogin().contains(" ")
-                || user.getBirthday().isAfter(LocalDate.now())) {
+        if (!isValidUser(user)) {
             log.warn("Ошибка создания пользователя. Ошибка входных данных! " + user);
             throw new UserSaveException("Ошибка создания пользователя. Ошибка входных данных!");
         } else {
@@ -42,13 +41,19 @@ public class UserController {
 
     @PutMapping(value = "/users")
     public User update(@Valid @RequestBody User user) {
-        if (!user.getEmail().contains("@") || user.getLogin().isEmpty() || user.getLogin().contains(" ")
-                || user.getBirthday().isAfter(LocalDate.now()) || !hmUsers.containsKey(user.getId())) {
+        if (!isValidUser(user) || !hmUsers.containsKey(user.getId())) {
             log.warn("Ошибка обновления пользователя с id={}. Ошибка входных данных! " + user, user.getId());
             throw new UserSaveException("Ошибка создания пользователя. Ошибка входных данных!");
         } else {
             hmUsers.put(user.getId(), user);
             return user;
         }
+    }
+
+    private boolean isValidUser(User user) {
+        return user.getEmail().contains("@")
+                && !user.getLogin().isEmpty()
+                && !user.getLogin().contains(" ")
+                && !user.getBirthday().isAfter(LocalDate.now());
     }
 }

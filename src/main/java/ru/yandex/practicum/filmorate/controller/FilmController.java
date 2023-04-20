@@ -18,39 +18,42 @@ import java.util.List;
 @Slf4j
 @RestController
 public class FilmController {
-    public static int generationId = 0;
+    private int generationId = 0;
 
-    private HashMap<Integer, Film> hmFilms = new HashMap<>();
+    private final HashMap<Integer, Film> films = new HashMap<>();
 
     @GetMapping("/films")
     public List<Film> findAll() {
-        return new ArrayList<>(hmFilms.values());
+        return new ArrayList<>(films.values());
     }
 
     @PostMapping(value = "/films")
     public Film create(@Valid @RequestBody Film film) {
-        if (film.getName().isEmpty() || film.getDescription().length() > 200
-                || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))
-                || film.getDuration() <= 0) {
+        if (!isValidFilm(film)) {
             log.warn("Ошибка занесения фильма. Ошибка входных данных! " + film);
             throw new FilmSaveException("Ошибка занесения фильма. Ошибка входных данных!");
         } else {
             film.setId(++generationId);
-            hmFilms.put(film.getId(), film);
+            films.put(film.getId(), film);
             return film;
         }
     }
 
     @PutMapping(value = "/films")
     public Film update(@Valid @RequestBody Film film) {
-        if (film.getName().isEmpty() || film.getDescription().length() > 200
-                || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))
-                || film.getDuration() <= 0 || !hmFilms.containsKey(film.getId())) {
+        if (!isValidFilm(film) || !films.containsKey(film.getId())) {
             log.warn("Ошибка обновления фильма с id={}. Ошибка входных данных! " + film, film.getId());
             throw new FilmSaveException("Ошибка входных данных!");
         } else {
-            hmFilms.put(film.getId(), film);
+            films.put(film.getId(), film);
             return film;
         }
+    }
+
+    private boolean isValidFilm(Film film) {
+        return !film.getName().isEmpty()
+                && film.getDescription().length() <= 200
+                && !film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))
+                && film.getDuration() > 0;
     }
 }

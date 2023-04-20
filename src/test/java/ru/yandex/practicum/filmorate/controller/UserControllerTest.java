@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.exception.UserSaveException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -11,12 +12,8 @@ import java.time.LocalDate;
 
 @SpringBootTest
 public class UserControllerTest {
-    UserController controller;
-
-    @BeforeEach
-    void beforeEach() {
-        controller = new UserController();
-    }
+    @Autowired
+    private UserController controller;
 
     @Test
     void shouldThrowExceptionWithEmptyEmail() {

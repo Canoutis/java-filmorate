@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.exception.FilmSaveException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -12,12 +13,9 @@ import java.time.LocalDate;
 @SpringBootTest
 public class FilmControllerTest {
 
-    FilmController controller;
+    @Autowired
+    private FilmController controller;
 
-    @BeforeEach
-    void beforeEach() {
-        controller = new FilmController();
-    }
 
     @Test
     void shouldThrowExceptionWithEmptyName() {
