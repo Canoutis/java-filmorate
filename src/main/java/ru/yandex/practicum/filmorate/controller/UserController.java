@@ -19,41 +19,41 @@ import java.util.List;
 @RestController
 public class UserController {
     private int generationId = 0;
-    private final HashMap<Integer, User> hmUsers = new HashMap<>();
+    private final HashMap<Integer, User> users = new HashMap<>();
 
     @GetMapping("/users")
     public List<User> findAll() {
-        return new ArrayList<>(hmUsers.values());
+        return new ArrayList<>(users.values());
     }
 
     @PostMapping(value = "/users")
     public User create(@Valid @RequestBody User user) {
-        if (!isValidUser(user)) {
+        if (isInvalidUser(user)) {
             log.warn("Ошибка создания пользователя. Ошибка входных данных! " + user);
             throw new UserSaveException("Ошибка создания пользователя. Ошибка входных данных!");
         } else {
             if (user.getName() == null || user.getName().isEmpty()) user.setName(user.getLogin());
             user.setId(++generationId);
-            hmUsers.put(user.getId(), user);
+            users.put(user.getId(), user);
             return user;
         }
     }
 
     @PutMapping(value = "/users")
     public User update(@Valid @RequestBody User user) {
-        if (!isValidUser(user) || !hmUsers.containsKey(user.getId())) {
+        if (isInvalidUser(user) || !users.containsKey(user.getId())) {
             log.warn("Ошибка обновления пользователя с id={}. Ошибка входных данных! " + user, user.getId());
             throw new UserSaveException("Ошибка создания пользователя. Ошибка входных данных!");
         } else {
-            hmUsers.put(user.getId(), user);
+            users.put(user.getId(), user);
             return user;
         }
     }
 
-    private boolean isValidUser(User user) {
-        return user.getEmail().contains("@")
-                && !user.getLogin().isEmpty()
-                && !user.getLogin().contains(" ")
-                && !user.getBirthday().isAfter(LocalDate.now());
+    private boolean isInvalidUser(User user) {
+        return !user.getEmail().contains("@")
+                || user.getLogin().isEmpty()
+                || user.getLogin().contains(" ")
+                || user.getBirthday().isAfter(LocalDate.now());
     }
 }

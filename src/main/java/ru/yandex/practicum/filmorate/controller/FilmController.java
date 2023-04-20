@@ -29,7 +29,7 @@ public class FilmController {
 
     @PostMapping(value = "/films")
     public Film create(@Valid @RequestBody Film film) {
-        if (!isValidFilm(film)) {
+        if (isInvalidFilm(film)) {
             log.warn("Ошибка занесения фильма. Ошибка входных данных! " + film);
             throw new FilmSaveException("Ошибка занесения фильма. Ошибка входных данных!");
         } else {
@@ -41,7 +41,7 @@ public class FilmController {
 
     @PutMapping(value = "/films")
     public Film update(@Valid @RequestBody Film film) {
-        if (!isValidFilm(film) || !films.containsKey(film.getId())) {
+        if (isInvalidFilm(film) || !films.containsKey(film.getId())) {
             log.warn("Ошибка обновления фильма с id={}. Ошибка входных данных! " + film, film.getId());
             throw new FilmSaveException("Ошибка входных данных!");
         } else {
@@ -50,10 +50,10 @@ public class FilmController {
         }
     }
 
-    private boolean isValidFilm(Film film) {
-        return !film.getName().isEmpty()
-                && film.getDescription().length() <= 200
-                && !film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))
-                && film.getDuration() > 0;
+    private boolean isInvalidFilm(Film film) {
+        return film.getName().isEmpty()
+                || film.getDescription().length() > 200
+                || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))
+                || film.getDuration() <= 0;
     }
 }
