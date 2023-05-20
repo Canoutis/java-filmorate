@@ -2,66 +2,95 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
+import ru.yandex.practicum.filmorate.exception.ObjectSaveException;
+import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.Comparator;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
 
-    private final InMemoryUserStorage inMemoryUserStorage;
+    private final UserStorage userStorage;
 
-    @Autowired
-    public UserService(InMemoryUserStorage inMemoryUserStorage) {
-        this.inMemoryUserStorage = inMemoryUserStorage;
+    public List<User> findAll() {
+        return userStorage.findAll();
     }
 
-    public User addFriendToUser(int userId, int friendId) {
-        if (inMemoryUserStorage.contains(userId) && inMemoryUserStorage.contains(friendId)) {
-            User user = inMemoryUserStorage.getUserById(userId);
-            user.getFriends().add(friendId);
-            User friend = inMemoryUserStorage.getUserById(friendId);
-            friend.getFriends().add(user.getId());
-            return user;
+    public User create(User user) {
+        if (isInvalidUser(user)) {
+            throw new ObjectSaveException(String.format("Ошибка создания пользователя. Ошибка входных данных! %s", user));
         } else {
-            throw new ObjectNotFoundException("Пользователь не найден!");
+            return userStorage.create(user);
         }
     }
 
+    public User update(User user) {
+        if (isInvalidUser(user)) {
+            throw new ObjectUpdateException(String.format("Ошибка обновления пользователя. Ошибка входных данных! %s", user));
+        } else {
+            return userStorage.update(user);
+        }
+    }
+
+    public User getUserById(int id) {
+        return userStorage.getUserById(id);
+    }
+
+    @Autowired
+    public UserService(InMemoryUserStorage userStorage) {
+        this.userStorage = userStorage;
+    }
+
+    public User addFriendToUser(int userId, int friendId) {
+        User user = userStorage.getUserById(userId);
+        User friend = userStorage.getUserById(friendId);
+        user.getFriends().add(friendId);
+        friend.getFriends().add(user.getId());
+        return user;
+    }
+
     public User removeFriendFromUser(int userId, int friendId) {
-        User user = inMemoryUserStorage.getUserById(userId);
+        User user = userStorage.getUserById(userId);
         user.getFriends().remove(friendId);
-        User friend = inMemoryUserStorage.getUserById(friendId);
+        User friend = userStorage.getUserById(friendId);
         friend.getFriends().remove(user.getId());
         return user;
     }
 
     public List<User> getUserFriends(int userId) {
-        User user = inMemoryUserStorage.getUserById(userId);
-        Set<User> result = new HashSet<>();
+        User user = userStorage.getUserById(userId);
+        List<User> result = new ArrayList<>();
         for (int friendId : user.getFriends()) {
-            result.add(inMemoryUserStorage.getUserById(friendId));
+            result.add(userStorage.getUserById(friendId));
         }
-        return result.stream().sorted(Comparator.comparing(User::getId)).collect(Collectors.toList());
+        return result;
     }
 
     public Set<User> getMutualFriends(int userId, int targetId) {
-        User user = inMemoryUserStorage.getUserById(userId);
-        User target = inMemoryUserStorage.getUserById(targetId);
+        User user = userStorage.getUserById(userId);
+        User target = userStorage.getUserById(targetId);
         Set<User> result = new HashSet<>();
         if (user.getFriends() != null) {
             for (int friendId : user.getFriends()) {
                 if (target.getFriends().contains(friendId))
-                    result.add(inMemoryUserStorage.getUserById(friendId));
+                    result.add(userStorage.getUserById(friendId));
             }
         }
         return result;
+    }
+
+    private boolean isInvalidUser(User user) {
+        return !user.getEmail().contains("@")
+                || user.getLogin().isEmpty()
+                || user.getLogin().contains(" ")
+                || user.getBirthday().isAfter(LocalDate.now());
     }
 
 }

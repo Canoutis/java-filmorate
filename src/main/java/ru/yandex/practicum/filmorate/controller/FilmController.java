@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -19,34 +18,31 @@ import java.util.List;
 @RestController
 public class FilmController {
 
-    private final InMemoryFilmStorage inMemoryFilmStorage;
     private final FilmService filmService;
 
     @Autowired
-    public FilmController(InMemoryFilmStorage inMemoryFilmStorage, FilmService filmService) {
-        this.inMemoryFilmStorage = inMemoryFilmStorage;
+    public FilmController(FilmService filmService) {
         this.filmService = filmService;
     }
 
     @GetMapping("/films")
     public List<Film> findAll() {
-        return inMemoryFilmStorage.findAll();
+        return filmService.findAll();
     }
-
 
     @GetMapping("/films/{id}")
     public Film getFilmById(@PathVariable int id) {
-        return inMemoryFilmStorage.getFilmById(id);
+        return filmService.getFilmById(id);
     }
 
     @PostMapping(value = "/films")
     public Film create(@Valid @RequestBody Film film) {
-        return inMemoryFilmStorage.create(film);
+        return filmService.create(film);
     }
 
     @PutMapping(value = "/films")
     public Film update(@Valid @RequestBody Film film) {
-        return inMemoryFilmStorage.update(film);
+        return filmService.update(film);
     }
 
     @PutMapping(value = "/films/{id}/like/{userId}")
