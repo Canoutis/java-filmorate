@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.yandex.practicum.filmorate.exception.FilmSaveException;
+import ru.yandex.practicum.filmorate.exception.ObjectSaveException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
@@ -12,8 +12,12 @@ import java.time.LocalDate;
 @SpringBootTest
 public class FilmControllerTest {
 
+    private final FilmController controller;
+
     @Autowired
-    private FilmController controller;
+    public FilmControllerTest(FilmController controller) {
+        this.controller = controller;
+    }
 
     @Test
     void shouldThrowExceptionWithEmptyName() {
@@ -23,7 +27,7 @@ public class FilmControllerTest {
                 .duration(114)
                 .releaseDate(LocalDate.of(2011, 3, 10))
                 .build();
-        Assertions.assertThrows(FilmSaveException.class, () -> controller.create(film));
+        Assertions.assertThrows(ObjectSaveException.class, () -> controller.create(film));
     }
 
     @Test
@@ -39,7 +43,7 @@ public class FilmControllerTest {
                 .duration(114)
                 .releaseDate(LocalDate.of(2011, 3, 10))
                 .build();
-        Assertions.assertThrows(FilmSaveException.class, () -> controller.create(film));
+        Assertions.assertThrows(ObjectSaveException.class, () -> controller.create(film));
     }
 
     @Test
@@ -50,7 +54,7 @@ public class FilmControllerTest {
                 .duration(0)
                 .releaseDate(LocalDate.of(2011, 3, 10))
                 .build();
-        Assertions.assertThrows(FilmSaveException.class, () -> controller.create(film));
+        Assertions.assertThrows(ObjectSaveException.class, () -> controller.create(film));
     }
 
     @Test
@@ -61,7 +65,7 @@ public class FilmControllerTest {
                 .duration(114)
                 .releaseDate(LocalDate.of(1600, 3, 10))
                 .build();
-        Assertions.assertThrows(FilmSaveException.class, () -> controller.create(film));
+        Assertions.assertThrows(ObjectSaveException.class, () -> controller.create(film));
     }
 
     @Test

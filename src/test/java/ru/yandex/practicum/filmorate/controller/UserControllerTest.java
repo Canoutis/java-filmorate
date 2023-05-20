@@ -4,15 +4,19 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.yandex.practicum.filmorate.exception.UserSaveException;
+import ru.yandex.practicum.filmorate.exception.ObjectSaveException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 
 @SpringBootTest
 public class UserControllerTest {
+    private final UserController controller;
+
     @Autowired
-    private UserController controller;
+    public UserControllerTest(UserController controller) {
+        this.controller = controller;
+    }
 
     @Test
     void shouldThrowExceptionWithEmptyEmail() {
@@ -22,7 +26,7 @@ public class UserControllerTest {
                 .login("Tester")
                 .birthday(LocalDate.of(2000, 1, 1))
                 .build();
-        Assertions.assertThrows(UserSaveException.class, () -> controller.create(user));
+        Assertions.assertThrows(ObjectSaveException.class, () -> controller.create(user));
     }
 
     @Test
@@ -33,7 +37,7 @@ public class UserControllerTest {
                 .login("Tester")
                 .birthday(LocalDate.of(2000, 1, 1))
                 .build();
-        Assertions.assertThrows(UserSaveException.class, () -> controller.create(user));
+        Assertions.assertThrows(ObjectSaveException.class, () -> controller.create(user));
     }
 
     @Test
@@ -44,7 +48,7 @@ public class UserControllerTest {
                 .login("")
                 .birthday(LocalDate.of(2000, 1, 1))
                 .build();
-        Assertions.assertThrows(UserSaveException.class, () -> controller.create(user));
+        Assertions.assertThrows(ObjectSaveException.class, () -> controller.create(user));
     }
 
     @Test
@@ -55,7 +59,7 @@ public class UserControllerTest {
                 .login("tes ter")
                 .birthday(LocalDate.of(2000, 1, 1))
                 .build();
-        Assertions.assertThrows(UserSaveException.class, () -> controller.create(user));
+        Assertions.assertThrows(ObjectSaveException.class, () -> controller.create(user));
     }
 
     @Test
@@ -66,7 +70,7 @@ public class UserControllerTest {
                 .login("tester")
                 .birthday(LocalDate.of(2024, 1, 1))
                 .build();
-        Assertions.assertThrows(UserSaveException.class, () -> controller.create(user));
+        Assertions.assertThrows(ObjectSaveException.class, () -> controller.create(user));
     }
 
     @Test
