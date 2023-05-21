@@ -2,13 +2,9 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.ObjectSaveException;
-import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -24,19 +20,13 @@ public class UserService {
     }
 
     public User create(User user) {
-        if (isInvalidUser(user)) {
-            throw new ObjectSaveException(String.format("Ошибка создания пользователя. Ошибка входных данных! %s", user));
-        } else {
-            return userStorage.create(user);
-        }
+        if (user.getName() == null || user.getName().isEmpty()) user.setName(user.getLogin());
+        return userStorage.create(user);
     }
 
     public User update(User user) {
-        if (isInvalidUser(user)) {
-            throw new ObjectUpdateException(String.format("Ошибка обновления пользователя. Ошибка входных данных! %s", user));
-        } else {
-            return userStorage.update(user);
-        }
+        if (user.getName() == null || user.getName().isEmpty()) user.setName(user.getLogin());
+        return userStorage.update(user);
     }
 
     public User getUserById(int id) {
@@ -44,7 +34,7 @@ public class UserService {
     }
 
     @Autowired
-    public UserService(InMemoryUserStorage userStorage) {
+    public UserService(UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
@@ -85,12 +75,4 @@ public class UserService {
         }
         return result;
     }
-
-    private boolean isInvalidUser(User user) {
-        return !user.getEmail().contains("@")
-                || user.getLogin().isEmpty()
-                || user.getLogin().contains(" ")
-                || user.getBirthday().isAfter(LocalDate.now());
-    }
-
 }

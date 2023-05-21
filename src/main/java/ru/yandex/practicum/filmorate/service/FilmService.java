@@ -19,6 +19,7 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private static final LocalDate MIN_POSSIBLE_DATE = LocalDate.of(1895, 12, 28);
 
     public List<Film> findAll() {
         return filmStorage.findAll();
@@ -71,9 +72,6 @@ public class FilmService {
     }
 
     private boolean isInvalidFilm(Film film) {
-        return film.getName().isEmpty()
-                || film.getDescription().length() > 200
-                || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))
-                || film.getDuration() <= 0;
+        return film.getReleaseDate().isBefore(MIN_POSSIBLE_DATE);
     }
 }
