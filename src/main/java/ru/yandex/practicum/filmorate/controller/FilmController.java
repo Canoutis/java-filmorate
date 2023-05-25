@@ -1,59 +1,62 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.exception.FilmSaveException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-@Slf4j
 @RestController
 public class FilmController {
-    private int generationId = 0;
 
-    private final HashMap<Integer, Film> films = new HashMap<>();
+    private final FilmService filmService;
+
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     @GetMapping("/films")
     public List<Film> findAll() {
-        return new ArrayList<>(films.values());
+        return filmService.findAll();
+    }
+
+    @GetMapping("/films/{id}")
+    public Film getFilmById(@PathVariable int id) {
+        return filmService.getFilmById(id);
     }
 
     @PostMapping(value = "/films")
     public Film create(@Valid @RequestBody Film film) {
-        if (isInvalidFilm(film)) {
-            log.warn("Ошибка занесения фильма. Ошибка входных данных! " + film);
-            throw new FilmSaveException("Ошибка занесения фильма. Ошибка входных данных!");
-        } else {
-            film.setId(++generationId);
-            films.put(film.getId(), film);
-            return film;
-        }
+        return filmService.create(film);
     }
 
     @PutMapping(value = "/films")
     public Film update(@Valid @RequestBody Film film) {
-        if (isInvalidFilm(film) || !films.containsKey(film.getId())) {
-            log.warn("Ошибка обновления фильма с id={}. Ошибка входных данных! " + film, film.getId());
-            throw new FilmSaveException("Ошибка входных данных!");
-        } else {
-            films.put(film.getId(), film);
-            return film;
-        }
+        return filmService.update(film);
     }
 
-    private boolean isInvalidFilm(Film film) {
-        return film.getName().isEmpty()
-                || film.getDescription().length() > 200
-                || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))
-                || film.getDuration() <= 0;
+    @PutMapping(value = "/films/{id}/like/{userId}")
+    public Film addUsersLike(@PathVariable int id, @PathVariable int userId) {
+        return filmService.addUsersLike(id, userId);
+    }
+
+    @DeleteMapping(value = "/films/{id}/like/{userId}")
+    public Film removeUsersLike(@PathVariable int id, @PathVariable int userId) {
+        return filmService.removeUsersLike(id, userId);
+    }
+
+    @GetMapping(value = "/films/popular")
+    public List<Film> getPopularFilms(@RequestParam(required = false, defaultValue = "10") int count) {
+        return filmService.getPopularFilms(count);
     }
 }

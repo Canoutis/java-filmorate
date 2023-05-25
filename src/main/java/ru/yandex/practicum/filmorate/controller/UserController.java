@@ -1,59 +1,67 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.exception.UserSaveException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
-@Slf4j
 @RestController
 public class UserController {
-    private int generationId = 0;
-    private final HashMap<Integer, User> users = new HashMap<>();
+
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping("/users")
     public List<User> findAll() {
-        return new ArrayList<>(users.values());
+        return userService.findAll();
     }
 
     @PostMapping(value = "/users")
     public User create(@Valid @RequestBody User user) {
-        if (isInvalidUser(user)) {
-            log.warn("Ошибка создания пользователя. Ошибка входных данных! " + user);
-            throw new UserSaveException("Ошибка создания пользователя. Ошибка входных данных!");
-        } else {
-            if (user.getName() == null || user.getName().isEmpty()) user.setName(user.getLogin());
-            user.setId(++generationId);
-            users.put(user.getId(), user);
-            return user;
-        }
+        return userService.create(user);
     }
 
     @PutMapping(value = "/users")
     public User update(@Valid @RequestBody User user) {
-        if (isInvalidUser(user) || !users.containsKey(user.getId())) {
-            log.warn("Ошибка обновления пользователя с id={}. Ошибка входных данных! " + user, user.getId());
-            throw new UserSaveException("Ошибка создания пользователя. Ошибка входных данных!");
-        } else {
-            users.put(user.getId(), user);
-            return user;
-        }
+        return userService.update(user);
     }
 
-    private boolean isInvalidUser(User user) {
-        return !user.getEmail().contains("@")
-                || user.getLogin().isEmpty()
-                || user.getLogin().contains(" ")
-                || user.getBirthday().isAfter(LocalDate.now());
+    @GetMapping(value = "/users/{id}")
+    public User getUserById(@PathVariable int id) {
+        return userService.getUserById(id);
+    }
+
+    @PutMapping(value = "/users/{id}/friends/{friendId}")
+    public User addFriendToUser(@PathVariable int id, @PathVariable int friendId) {
+        return userService.addFriendToUser(id, friendId);
+    }
+
+    @DeleteMapping(value = "/users/{id}/friends/{friendId}")
+    public User removeFriendFromUser(@PathVariable int id, @PathVariable int friendId) {
+        return userService.removeFriendFromUser(id, friendId);
+    }
+
+    @GetMapping(value = "/users/{id}/friends")
+    public List<User> getUserFriends(@PathVariable int id) {
+        return userService.getUserFriends(id);
+    }
+
+    @GetMapping(value = "/users/{id}/friends/common/{otherId}")
+    public Set<User> getMutualFriends(@PathVariable int id, @PathVariable int otherId) {
+        return userService.getMutualFriends(id, otherId);
     }
 }
