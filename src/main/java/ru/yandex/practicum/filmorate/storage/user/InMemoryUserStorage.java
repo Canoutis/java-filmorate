@@ -31,7 +31,7 @@ public class InMemoryUserStorage implements UserStorage {
     public User update(User user) {
         if (!users.containsKey(user.getId())) {
             throw new ObjectNotFoundException(
-                    String.format("Ошибка обновления пользователя. Пользователь не найден! Id=%s", user.getId()));
+                    String.format("Ошибка обновления пользователя. Пользователь не найден! Id=%d", user.getId()));
         } else {
             users.put(user.getId(), user);
             return user;
@@ -43,7 +43,7 @@ public class InMemoryUserStorage implements UserStorage {
         if (users.containsKey(userId)) {
             return users.get(userId);
         } else {
-            throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%s", userId));
+            throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%d", userId));
         }
     }
 

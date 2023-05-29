@@ -2,12 +2,12 @@ package ru.yandex.practicum.filmorate.storage.mpa;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 
-import java.util.ArrayList;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 @Component
@@ -21,31 +21,25 @@ public class MpaRatingDaoImpl implements MpaRatingDao {
 
     @Override
     public List<MpaRating> findAll() {
-        SqlRowSet mpaRatingRows = jdbcTemplate.queryForRowSet("select * from mpa_rating");
-        List<MpaRating> mpaRatingList = new ArrayList<>();
-        while (mpaRatingRows.next()) {
-            MpaRating mpaRating = new MpaRating(
-                    mpaRatingRows.getInt("rating_id"),
-                    mpaRatingRows.getString("rating_name"));
-            mpaRatingList.add(mpaRating);
-        }
-        return mpaRatingList;
+        return jdbcTemplate.query("select * from mpa_rating", MpaRatingDaoImpl::makeMpaRating);
     }
 
     @Override
     public MpaRating getMpaRatingById(int id) {
-        SqlRowSet mpaRatingRows = jdbcTemplate.queryForRowSet("select * from mpa_rating where rating_id=?", id);
-        if (mpaRatingRows.next()) {
-            MpaRating mpaRating = new MpaRating(
-                    mpaRatingRows.getInt("rating_id"),
-                    mpaRatingRows.getString("rating_name"));
-
-            log.info("Найден рейтинг: {} {}", mpaRating.getId(), mpaRating.getName());
-            return mpaRating;
+        List<MpaRating> ratings = jdbcTemplate.query("select * from mpa_rating where rating_id=?", MpaRatingDaoImpl::makeMpaRating, id);
+        if (!ratings.isEmpty()) {
+            log.info("Найден рейтинг: {} {}", ratings.get(0), ratings.get(0));
+            return ratings.get(0);
         } else {
             log.info("Рейтинг с идентификатором {} не найден.", id);
             throw new ObjectNotFoundException(
-                    String.format("Ошибка получения рейтинга. Рейтинг не найден! Id=%s", id));
+                    String.format("Ошибка получения рейтинга. Рейтинг не найден! Id=%d", id));
         }
+    }
+
+    static MpaRating makeMpaRating(ResultSet rs, int rowNum) throws SQLException {
+        return new MpaRating(
+                rs.getInt("rating_id"),
+                rs.getString("rating_name"));
     }
 }

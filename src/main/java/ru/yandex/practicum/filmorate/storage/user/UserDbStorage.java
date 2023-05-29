@@ -12,6 +12,8 @@ import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.utils.Constant;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -30,19 +32,16 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> findAll() {
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet("select * from user");
-        List<User> userList = new ArrayList<>();
-        while (userRows.next()) {
-            User user = new User(
-                    userRows.getInt("user_id"),
-                    userRows.getString("email"),
-                    userRows.getString("login"),
-                    userRows.getString("name"),
-                    Objects.requireNonNull(userRows.getDate("birthday")).toLocalDate()
-            );
-            userList.add(user);
-        }
-        return userList;
+        return jdbcTemplate.query("select * from user", UserDbStorage::makeUser);
+    }
+
+    static User makeUser(ResultSet rs, int rowNum) throws SQLException {
+        return new User(
+                rs.getInt("user_id"),
+                rs.getString("email"),
+                rs.getString("login"),
+                rs.getString("name"),
+                Objects.requireNonNull(rs.getDate("birthday")).toLocalDate());
     }
 
     @Override
@@ -71,27 +70,20 @@ public class UserDbStorage implements UserStorage {
         } else {
             log.info("Пользователь с идентификатором {} не изменен.", user.getId());
             throw new ObjectUpdateException(
-                    String.format("Ошибка обновления пользователя! Id=%s", user.getId()));
+                    String.format("Ошибка обновления пользователя! Id=%d", user.getId()));
         }
     }
 
     @Override
     public User getUserById(int id) {
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet("select * from user where user_id=?", id);
-        if (userRows.next()) {
-            User user = new User(
-                    userRows.getInt("user_id"),
-                    userRows.getString("email"),
-                    userRows.getString("login"),
-                    userRows.getString("name"),
-                    Objects.requireNonNull(userRows.getDate("birthday")).toLocalDate());
-
-            log.info("Найден пользователь: {} {}", user.getId(), user.getName());
-            return user;
+        List<User> users = jdbcTemplate.query("select * from user where user_id=?", UserDbStorage::makeUser, id);
+        if (!users.isEmpty()) {
+            log.info("Найден пользователь: {} {}", users.get(0).getId(), users.get(0).getName());
+            return users.get(0);
         } else {
             log.info("Пользователь с идентификатором {} не найден.", id);
             throw new ObjectNotFoundException(
-                    String.format("Ошибка получения пользователя. Пользователь не найден! Id=%s", id));
+                    String.format("Ошибка получения пользователя. Пользователь не найден! Id=%d", id));
         }
     }
 
@@ -111,7 +103,7 @@ public class UserDbStorage implements UserStorage {
             if (updatedRowsNum == 0) {
                 log.info("Ошибка обновления статуса заявки в друзья. UserId={}, FriendId={}", userId, friendId);
                 throw new ObjectSaveException(
-                        String.format("Ошибка обновления статуса заявки в друзья. UserId=%s, FriendId=%s", userId, friendId));
+                        String.format("Ошибка обновления статуса заявки в друзья. UserId=%d, FriendId=%d", userId, friendId));
             }
         } else {
             String sqlQuery = "delete from friend_request " +
@@ -148,7 +140,7 @@ public class UserDbStorage implements UserStorage {
         if (updatedRowsNum == 0) {
             log.info("Ошибка обновления статуса заявки в друзья. Id={}", friendRequestId);
             throw new ObjectSaveException(
-                    String.format("Ошибка обновления статуса заявки в друзья. Id=%s", friendRequestId));
+                    String.format("Ошибка обновления статуса заявки в друзья. Id=%d", friendRequestId));
         }
     }
 

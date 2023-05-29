@@ -35,7 +35,7 @@ public class FilmService {
 
     public Film update(Film film) {
         if (isInvalidFilm(film)) {
-            throw new ObjectUpdateException(String.format("Ошибка обновления фильма! Ошибка входных данных! Id=%s", film.getId()));
+            throw new ObjectUpdateException(String.format("Ошибка обновления фильма! Ошибка входных данных! Id=%d", film.getId()));
         } else {
             return filmStorage.update(film);
         }

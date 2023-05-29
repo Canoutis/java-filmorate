@@ -46,7 +46,7 @@ public class GenreDaoImpl implements GenreDao {
         } else {
             log.info("Жанр с идентификатором {} не найден.", id);
             throw new ObjectNotFoundException(
-                    String.format("Ошибка получения жанра. Жанр не найден! Id=%s", id));
+                    String.format("Ошибка получения жанра. Жанр не найден! Id=%d", id));
         }
     }
 }
