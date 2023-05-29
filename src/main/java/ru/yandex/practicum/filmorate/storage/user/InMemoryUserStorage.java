@@ -31,7 +31,7 @@ public class InMemoryUserStorage implements UserStorage {
     public User update(User user) {
         if (!users.containsKey(user.getId())) {
             throw new ObjectNotFoundException(
-                    String.format("Ошибка обновления пользователя. Пользователь не найден! Id=%x", user.getId()));
+                    String.format("Ошибка обновления пользователя. Пользователь не найден! Id=%s", user.getId()));
         } else {
             users.put(user.getId(), user);
             return user;
@@ -43,7 +43,47 @@ public class InMemoryUserStorage implements UserStorage {
         if (users.containsKey(userId)) {
             return users.get(userId);
         } else {
-            throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%x", userId));
+            throw new ObjectNotFoundException(String.format("Пользователь не найден! Id=%s", userId));
         }
+    }
+
+    @Override
+    public User removeFriendFromUser(int userId, int friendId) {
+        User user = getUserById(userId);
+        user.getFriends().remove(friendId);
+        User friend = getUserById(friendId);
+        friend.getFriends().remove(user.getId());
+        return user;
+    }
+
+    public User addFriendToUser(int userId, int friendId) {
+        User user = getUserById(userId);
+        User friend = getUserById(friendId);
+        user.getFriends().add(friendId);
+        friend.getFriends().add(user.getId());
+        return user;
+    }
+
+    public List<User> getUserFriends(int userId) {
+        User user = getUserById(userId);
+        List<User> result = new ArrayList<>();
+        for (int friendId : user.getFriends()) {
+            result.add(getUserById(friendId));
+        }
+        return result;
+    }
+
+    @Override
+    public List<User> getMutualFriends(int userId, int targetId) {
+        User user = getUserById(userId);
+        User target = getUserById(targetId);
+        List<User> result = new ArrayList<>();
+        if (user.getFriends() != null) {
+            for (int friendId : user.getFriends()) {
+                if (target.getFriends().contains(friendId))
+                    result.add(getUserById(friendId));
+            }
+        }
+        return result;
     }
 }

@@ -12,4 +12,10 @@ public interface FilmStorage {
     Film update(Film film);
 
     Film getFilmById(int id);
+
+    Film addUserLike(int filmId, int userId);
+
+    List<Film> getPopularFilms(int count);
+
+    Film removeUserLike(int filmId, int userId);
 }

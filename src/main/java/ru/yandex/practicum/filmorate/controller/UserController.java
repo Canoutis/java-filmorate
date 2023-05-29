@@ -13,7 +13,6 @@ import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 public class UserController {
@@ -61,7 +60,7 @@ public class UserController {
     }
 
     @GetMapping(value = "/users/{id}/friends/common/{otherId}")
-    public Set<User> getMutualFriends(@PathVariable int id, @PathVariable int otherId) {
+    public List<User> getMutualFriends(@PathVariable int id, @PathVariable int otherId) {
         return userService.getMutualFriends(id, otherId);
     }
 }

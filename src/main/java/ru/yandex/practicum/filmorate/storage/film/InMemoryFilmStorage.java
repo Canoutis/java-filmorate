@@ -7,8 +7,10 @@ import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -46,5 +48,27 @@ public class InMemoryFilmStorage implements FilmStorage {
         } else {
             throw new ObjectNotFoundException(String.format("Фильм не найден! %x", filmId));
         }
+    }
+
+    @Override
+    public Film addUserLike(int filmId, int userId) {
+        Film film = getFilmById(filmId);
+        film.getLikes().add(userId);
+        return film;
+    }
+
+    @Override
+    public List<Film> getPopularFilms(int count) {
+        return findAll()
+                .stream()
+                .sorted(Comparator.comparingInt(film -> -film.getLikes().size())).limit(count)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Film removeUserLike(int filmId, int userId) {
+        Film film = getFilmById(filmId);
+        film.getLikes().remove(userId);
+        return film;
     }
 }
