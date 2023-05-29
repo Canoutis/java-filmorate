@@ -164,8 +164,8 @@ public class UserDbStorage implements UserStorage {
                         "  select fr.initiator_user_id " +
                         "  from friend_request fr " +
                         "  where fr.target_user_id = ? and fr.confirmed = true" +
-                        ")"
-                , userId, userId);
+                        ")",
+                userId, userId);
         List<User> userList = new ArrayList<>();
         while (userRows.next()) {
             User user = new User(
