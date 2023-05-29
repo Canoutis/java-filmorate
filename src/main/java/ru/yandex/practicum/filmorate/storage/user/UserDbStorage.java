@@ -60,13 +60,12 @@ public class UserDbStorage implements UserStorage {
         String sqlQuery = "update user set " +
                 "email = ?, login = ?, name = ?, birthday = ? " +
                 "where user_id = ?";
-        int response = jdbcTemplate.update(sqlQuery
-                , user.getEmail()
-                , user.getLogin()
-                , user.getName()
-                , user.getBirthday().format(Constant.dateFormatter)
-                , user.getId()
-        );
+        int response = jdbcTemplate.update(sqlQuery,
+                user.getEmail(),
+                user.getLogin(),
+                user.getName(),
+                user.getBirthday().format(Constant.dateFormatter),
+                user.getId());
         if (response == 1) {
             return getUserById(user.getId());
         } else {
@@ -107,9 +106,8 @@ public class UserDbStorage implements UserStorage {
                     "set initiator_user_id = ?, " +
                     "target_user_id = ?," +
                     "confirmed = false";
-            int updatedRowsNum = jdbcTemplate.update(sqlQuery
-                    , friendId
-                    , userId);
+            int updatedRowsNum = jdbcTemplate.update(sqlQuery,
+                    friendId, userId);
             if (updatedRowsNum == 0) {
                 log.info("Ошибка обновления статуса заявки в друзья. UserId={}, FriendId={}", userId, friendId);
                 throw new ObjectSaveException(
@@ -146,9 +144,7 @@ public class UserDbStorage implements UserStorage {
     private void confirmFriendRequest(int friendRequestId) {
         String sqlQuery = "update friend_request set confirmed = ? " +
                 "where request_id = ?";
-        int updatedRowsNum = jdbcTemplate.update(sqlQuery
-                , true
-                , friendRequestId);
+        int updatedRowsNum = jdbcTemplate.update(sqlQuery, true, friendRequestId);
         if (updatedRowsNum == 0) {
             log.info("Ошибка обновления статуса заявки в друзья. Id={}", friendRequestId);
             throw new ObjectSaveException(
