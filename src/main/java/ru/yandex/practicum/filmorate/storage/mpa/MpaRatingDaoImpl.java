@@ -22,23 +22,23 @@ public class MpaRatingDaoImpl implements MpaRatingDao {
     @Override
     public List<MpaRating> findAll() {
         SqlRowSet mpaRatingRows = jdbcTemplate.queryForRowSet("select * from mpa_rating");
-        List<MpaRating> MpaRatingList = new ArrayList<>();
+        List<MpaRating> mpaRatingList = new ArrayList<>();
         while (mpaRatingRows.next()) {
             MpaRating mpaRating = new MpaRating(
                     mpaRatingRows.getInt("rating_id"),
                     mpaRatingRows.getString("rating_name"));
-            MpaRatingList.add(mpaRating);
+            mpaRatingList.add(mpaRating);
         }
-        return MpaRatingList;
+        return mpaRatingList;
     }
 
     @Override
     public MpaRating getMpaRatingById(int id) {
-        SqlRowSet MpaRatingRows = jdbcTemplate.queryForRowSet("select * from mpa_rating where rating_id=?", id);
-        if (MpaRatingRows.next()) {
+        SqlRowSet mpaRatingRows = jdbcTemplate.queryForRowSet("select * from mpa_rating where rating_id=?", id);
+        if (mpaRatingRows.next()) {
             MpaRating mpaRating = new MpaRating(
-                    MpaRatingRows.getInt("rating_id"),
-                    MpaRatingRows.getString("rating_name"));
+                    mpaRatingRows.getInt("rating_id"),
+                    mpaRatingRows.getString("rating_name"));
 
             log.info("Найден рейтинг: {} {}", mpaRating.getId(), mpaRating.getName());
             return mpaRating;
