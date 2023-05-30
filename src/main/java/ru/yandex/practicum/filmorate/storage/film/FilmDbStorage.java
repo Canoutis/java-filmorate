@@ -15,13 +15,13 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDao;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaRatingDao;
-import ru.yandex.practicum.filmorate.storage.mpa.MpaRatingDaoImpl;
 import ru.yandex.practicum.filmorate.utils.Constant;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +38,7 @@ public class FilmDbStorage implements FilmStorage {
     private final GenreDao genreDao;
 
     @Autowired
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaRatingDaoImpl mpaRatingDao, GenreDao genreDao) {
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaRatingDao mpaRatingDao, GenreDao genreDao) {
         this.jdbcTemplate = jdbcTemplate;
         this.mpaRatingDao = mpaRatingDao;
         this.genreDao = genreDao;
@@ -69,13 +69,16 @@ public class FilmDbStorage implements FilmStorage {
         List<Integer> filmIds = films.stream().map(Film::getId).collect(Collectors.toList());
         Map<Integer, List<Genre>> filmGenresMap = new HashMap<>();
         if (!filmIds.isEmpty()) {
-            String filmIdsString = filmIds.stream().map(String::valueOf).collect(Collectors.joining(", "));
-            String query = "select fg.film_id, g.genre_id, g.name from genre g inner join film_genre fg on fg.genre_id = g.genre_id where fg.film_id in (" + filmIdsString + ")";
+            String questionMarks = String.join(", ", Collections.nCopies(filmIds.size(), "?"));
+            String query = "select fg.film_id, g.genre_id, g.name " +
+                    "from genre g inner " +
+                    "join film_genre fg on fg.genre_id = g.genre_id " +
+                    "where fg.film_id in (" + questionMarks + ")";
             jdbcTemplate.query(query, rs -> {
                 int filmId = rs.getInt("film_id");
                 Genre genre = new Genre(rs.getInt("genre_id"), rs.getString("name"));
                 filmGenresMap.computeIfAbsent(filmId, key -> new ArrayList<>()).add(genre);
-            });
+            }, filmIds.toArray());
         }
         return filmGenresMap;
     }

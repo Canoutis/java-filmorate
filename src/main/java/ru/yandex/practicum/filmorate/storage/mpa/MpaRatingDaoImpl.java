@@ -27,11 +27,15 @@ public class MpaRatingDaoImpl implements MpaRatingDao {
     @Override
     public MpaRating getMpaRatingById(int id) {
         List<MpaRating> ratings = jdbcTemplate.query("select * from mpa_rating where rating_id=?", MpaRatingDaoImpl::makeMpaRating, id);
-        if (!ratings.isEmpty()) {
+        if (ratings.size() == 1) {
             log.info("Найден рейтинг: {} {}", ratings.get(0), ratings.get(0));
             return ratings.get(0);
         } else {
-            log.info("Рейтинг с идентификатором {} не найден.", id);
+            if (ratings.isEmpty()) {
+                log.info("Рейтинг с идентификатором {} не найден.", id);
+            } else {
+                log.warn("Получено неожиданное количество записей ({}) для рейтинга с идентификатором {}.", ratings.size(), id);
+            }
             throw new ObjectNotFoundException(
                     String.format("Ошибка получения рейтинга. Рейтинг не найден! Id=%d", id));
         }
