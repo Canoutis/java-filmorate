@@ -12,7 +12,7 @@ public interface ReviewDao {
 
     void removeReview(Integer reviewId);
 
-    Review getReview(Integer reviewId);
+    Review getReviewById(Integer reviewId);
 
     List<Review> findReviews(Integer filmId, Integer count);
 
