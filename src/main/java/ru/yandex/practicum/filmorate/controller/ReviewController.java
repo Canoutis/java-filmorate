@@ -43,7 +43,7 @@ public class ReviewController {
         reviewService.addLikeToReview(reviewId, userId);
     }
 
-    @PutMapping("/{reviewId}/like/{userId}")
+    @PutMapping("/{reviewId}/dislike/{userId}")
     public void addLDislikeToReview(Integer reviewId, Integer userId) {
         reviewService.addLDislikeToReview(reviewId, userId);
     }
@@ -53,7 +53,7 @@ public class ReviewController {
         reviewService.removeLikeFromReview(reviewId, userId);
     }
 
-    @DeleteMapping("/{reviewId}/like/{userId}")
+    @DeleteMapping("/{reviewId}/dislike/{userId}")
     public void removeDislikeFromReview(Integer reviewId, Integer userId) {
         reviewService.removeDislikeFromReview(reviewId, userId);
     }
