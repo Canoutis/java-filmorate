@@ -27,14 +27,12 @@ public class ReviewDaoImpl implements ReviewDao {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("review")
                 .usingGeneratedKeyColumns("review_id");
-        review.setReviewId(simpleJdbcInsert.executeAndReturnKey(review.toMap()).intValue());
-        review.setUseful(0);
-        return review;
+        return getReview(simpleJdbcInsert.executeAndReturnKey(review.toMap()).intValue());
     }
 
     @Override
     public Review updateReview(Review review) {
-        return null;
+        return getReview(review.getReviewId());
     }
 
     @Override
@@ -43,7 +41,7 @@ public class ReviewDaoImpl implements ReviewDao {
     }
 
     @Override
-    public Review findReview(Integer reviewId) {
+    public Review getReview(Integer reviewId) {
         return null;
     }
 

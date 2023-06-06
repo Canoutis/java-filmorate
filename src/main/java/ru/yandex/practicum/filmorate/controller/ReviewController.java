@@ -30,8 +30,8 @@ public class ReviewController {
     }
 
     @GetMapping("/{reviewId}")
-    public Review findReview(@PathVariable Integer reviewId) {
-        return reviewService.findReview(reviewId);
+    public Review getReview(@PathVariable Integer reviewId) {
+        return reviewService.getReview(reviewId);
     }
 
     @GetMapping()

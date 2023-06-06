@@ -24,8 +24,8 @@ public class ReviewService {
         reviewDao.removeReview(reviewId);
     }
 
-    public Review findReview(Integer reviewId) {
-        return reviewDao.findReview(reviewId);
+    public Review getReview(Integer reviewId) {
+        return reviewDao.getReview(reviewId);
     }
 
     public List<Review> findReviews(Integer filmId, Integer count) {
