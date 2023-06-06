@@ -14,7 +14,7 @@ public interface ReviewDao {
 
     Review findReview(Integer reviewId);
 
-    List<Review> findReviews(Integer filmId, Integer limit);
+    List<Review> findReviews(Integer filmId, Integer count);
 
     void addLikeToReview(Integer reviewId, Integer userId);
 

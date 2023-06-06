@@ -28,8 +28,8 @@ public class ReviewService {
         return reviewDao.findReview(reviewId);
     }
 
-    public List<Review> findReviews(Integer filmId, Integer limit) {
-        return reviewDao.findReviews(filmId, limit);
+    public List<Review> findReviews(Integer filmId, Integer count) {
+        return reviewDao.findReviews(filmId, count);
     }
 
     public void addLikeToReview(Integer reviewId, Integer userId) {

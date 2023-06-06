@@ -34,8 +34,8 @@ public class ReviewController {
     }
 
     @GetMapping()
-    public List<Review> findReviews(@RequestParam(required = false) Integer filmId, @RequestParam(required = false, defaultValue = "10") Integer limit) {
-        return reviewService.findReviews(filmId, limit);
+    public List<Review> findReviews(@RequestParam(required = false) Integer filmId, @RequestParam(required = false, defaultValue = "10") Integer count) {
+        return reviewService.findReviews(filmId, count);
     }
 
     @PutMapping("/{reviewId}/like/{userId}")

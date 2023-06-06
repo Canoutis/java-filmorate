@@ -30,7 +30,7 @@ public class ReviewDaoImpl implements ReviewDao {
     }
 
     @Override
-    public List<Review> findReviews(Integer filmId, Integer limit) {
+    public List<Review> findReviews(Integer filmId, Integer count) {
         return null;
     }
 
