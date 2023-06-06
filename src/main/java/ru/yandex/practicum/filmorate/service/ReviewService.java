@@ -29,7 +29,7 @@ public class ReviewService {
     }
 
     public List<Review> findReviews(Integer filmId, Integer limit) {
-        return findReviews(filmId, limit);
+        return reviewDao.findReviews(filmId, limit);
     }
 
     public void addLikeToReview(Integer reviewId, Integer userId) {

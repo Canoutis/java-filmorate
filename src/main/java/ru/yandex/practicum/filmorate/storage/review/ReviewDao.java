@@ -6,7 +6,6 @@ import java.util.List;
 
 public interface ReviewDao {
 
-
     Review createReview(Review review);
 
     Review updateReview(Review review);
