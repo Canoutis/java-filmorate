@@ -58,6 +58,14 @@ public class FilmService {
         return filmStorage.getPopularFilms(count);
     }
 
+    public List<Film> getDirectorSortedPopularFilms(int directorId, String sortBy) {
+        if ("year".equals(sortBy)) {
+            return filmStorage.getDirectorFilmsSortedByYear(directorId);
+        } else {
+            return filmStorage.getDirectorFilmsSortedByLikes(directorId);
+        }
+    }
+
     private boolean isInvalidFilm(Film film) {
         return film.getReleaseDate().isBefore(MIN_POSSIBLE_DATE);
     }
