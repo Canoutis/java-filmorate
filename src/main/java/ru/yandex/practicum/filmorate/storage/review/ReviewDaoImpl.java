@@ -74,10 +74,10 @@ public class ReviewDaoImpl implements ReviewDao {
     @Override
     public List<Review> findReviews(Integer filmId, Integer count) {
         if (filmId != null) {
-            sqlQuery = "select * from review where film_id = ? order by useful, review_id limit ?";
+            sqlQuery = "select * from review where film_id = ? order by useful desc, review_id limit ?";
             return jdbcTemplate.query(sqlQuery, this::makeReview, filmId, count);
         } else {
-            sqlQuery = "select * from review order by useful, review_id limit ?";
+            sqlQuery = "select * from review order by useful desc, review_id limit ?";
             return jdbcTemplate.query(sqlQuery, this::makeReview, count);
         }
     }
@@ -130,7 +130,8 @@ public class ReviewDaoImpl implements ReviewDao {
     }
 
     private void changeUseful(Integer reviewId, Integer delta) {
-        sqlQuery = "update review set useful = useful + ? where review_id = ?";
-        jdbcTemplate.update(sqlQuery, delta, reviewId);
+        Review review = getReviewById(reviewId);
+        sqlQuery = "update review set useful = ? where review_id = ?";
+        jdbcTemplate.update(sqlQuery, review.getUseful() + delta, reviewId);
     }
 }
