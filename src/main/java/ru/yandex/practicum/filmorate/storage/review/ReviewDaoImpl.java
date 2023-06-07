@@ -55,6 +55,7 @@ public class ReviewDaoImpl implements ReviewDao {
         sqlQuery = "select * from review where review_id = ?";
         SqlRowSet row = jdbcTemplate.queryForRowSet(sqlQuery, reviewId);
         if (row.next()) {
+            log.info("Найден отзыв с идентификатором {}", reviewId);
             return Review.builder()
                     .reviewId(row.getInt("review_id"))
                     .content(row.getString("content"))
@@ -73,10 +74,10 @@ public class ReviewDaoImpl implements ReviewDao {
     @Override
     public List<Review> findReviews(Integer filmId, Integer count) {
         if (filmId != null) {
-            sqlQuery = "select * from review film_id = ? order by useful limit ?";
+            sqlQuery = "select * from review where film_id = ? order by useful, review_id limit ?";
             return jdbcTemplate.query(sqlQuery, this::makeReview, filmId, count);
         } else {
-            sqlQuery = "select * from review order by useful limit ?";
+            sqlQuery = "select * from review order by useful, review_id limit ?";
             return jdbcTemplate.query(sqlQuery, this::makeReview, count);
         }
     }
@@ -112,23 +113,23 @@ public class ReviewDaoImpl implements ReviewDao {
                 .build();
     }
 
-    private void addFeedback(Integer reviewId, Integer userId, Boolean is_positive) {
+    private void addFeedback(Integer reviewId, Integer userId, Boolean isUseful) {
         getReviewById(reviewId);
         userDbStorage.getUserById(userId);
-        sqlQuery = "insert into feedback (review_id, user_id, is_positive) VALUES (?, ?, ?)";
-        jdbcTemplate.update(sqlQuery, reviewId, userId, is_positive);
-        changeUseful(reviewId, userId, is_positive ? 1 : -1);
+        sqlQuery = "insert into feedback (review_id, user_id, is_useful) VALUES (?, ?, ?)";
+        jdbcTemplate.update(sqlQuery, reviewId, userId, isUseful);
+        changeUseful(reviewId, isUseful ? 1 : -1);
     }
 
-    private void removeFeedback(Integer reviewId, Integer userId, Boolean is_positive) {
+    private void removeFeedback(Integer reviewId, Integer userId, Boolean isUseful) {
         getReviewById(reviewId);
         userDbStorage.getUserById(userId);
-        sqlQuery = "delete from feedback where user_id = ? and user_id = ? and is_positive = ?";
-        jdbcTemplate.update(sqlQuery, reviewId, userId, is_positive);
-        changeUseful(reviewId, userId, is_positive ? -1 : 1);
+        sqlQuery = "delete from feedback where user_id = ? and user_id = ? and is_useful = ?";
+        jdbcTemplate.update(sqlQuery, reviewId, userId, isUseful);
+        changeUseful(reviewId, isUseful ? -1 : 1);
     }
 
-    private void changeUseful(Integer reviewId, Integer delta, int i) {
+    private void changeUseful(Integer reviewId, Integer delta) {
         sqlQuery = "update review set useful = useful + ? where review_id = ?";
         jdbcTemplate.update(sqlQuery, delta, reviewId);
     }
