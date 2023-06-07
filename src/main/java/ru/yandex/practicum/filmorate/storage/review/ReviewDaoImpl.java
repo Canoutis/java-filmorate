@@ -83,22 +83,22 @@ public class ReviewDaoImpl implements ReviewDao {
 
     @Override
     public void addLikeToReview(Integer reviewId, Integer userId) {
-
+        addFeedback(reviewId, userId, true);
     }
 
     @Override
     public void addLDislikeToReview(Integer reviewId, Integer userId) {
-
+        addFeedback(reviewId, userId, false);
     }
 
     @Override
     public void removeLikeFromReview(Integer reviewId, Integer userId) {
-
+        removeFeedback(reviewId, userId, true);
     }
 
     @Override
     public void removeDislikeFromReview(Integer reviewId, Integer userId) {
-
+        removeFeedback(reviewId, userId, false);
     }
 
     private Review makeReview(ResultSet rs, int rowNum) throws SQLException {
@@ -110,5 +110,26 @@ public class ReviewDaoImpl implements ReviewDao {
                 .filmId(rs.getInt("film_id"))
                 .useful(rs.getInt("useful"))
                 .build();
+    }
+
+    private void addFeedback(Integer reviewId, Integer userId, Boolean is_positive) {
+        getReviewById(reviewId);
+        userDbStorage.getUserById(userId);
+        sqlQuery = "insert into feedback (review_id, user_id, is_positive) VALUES (?, ?, ?)";
+        jdbcTemplate.update(sqlQuery, reviewId, userId, is_positive);
+        changeUseful(reviewId, userId, is_positive ? 1 : -1);
+    }
+
+    private void removeFeedback(Integer reviewId, Integer userId, Boolean is_positive) {
+        getReviewById(reviewId);
+        userDbStorage.getUserById(userId);
+        sqlQuery = "delete from feedback where user_id = ? and user_id = ? and is_positive = ?";
+        jdbcTemplate.update(sqlQuery, reviewId, userId, is_positive);
+        changeUseful(reviewId, userId, is_positive ? -1 : 1);
+    }
+
+    private void changeUseful(Integer reviewId, Integer delta, int i) {
+        sqlQuery = "update review set useful = useful + ? where review_id = ?";
+        jdbcTemplate.update(sqlQuery, delta, reviewId);
     }
 }
