@@ -96,6 +96,6 @@ CREATE TABLE IF NOT EXISTS feedback (
   review_id integer,
   user_id integer NOT NULL,
   is_useful boolean default null,
-  CONSTRAINT feedback_fk_1 FOREIGN KEY (review_id) REFERENCES review(review_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT feedback_fk_1 FOREIGN KEY (review_id) REFERENCES review(review_id) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT feedback_fk_2 FOREIGN KEY (USER_ID) REFERENCES "USER"(USER_ID) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
