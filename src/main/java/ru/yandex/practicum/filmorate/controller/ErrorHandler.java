@@ -20,7 +20,7 @@ public class ErrorHandler {
         log.debug(e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
-
+///
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleObjectSaveException(final ObjectSaveException e) {
