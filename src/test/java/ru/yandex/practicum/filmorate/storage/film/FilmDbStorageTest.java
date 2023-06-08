@@ -202,7 +202,7 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    public void testRemoveOneFilmGetById(){
+    public void testRemoveOneFilmGetById() {
         Film film = Film.builder()
                 .name("1+2")
                 .description("Нету ручек, нет конфеток!")
