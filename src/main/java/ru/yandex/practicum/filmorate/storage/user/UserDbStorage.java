@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,20 +23,17 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @Qualifier("UserDbStorage")
+@RequiredArgsConstructor
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public UserDbStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
     @Override
     public List<User> findAll() {
-        return jdbcTemplate.query("select * from user", UserDbStorage::makeUser);
+        return jdbcTemplate.query("select * from user", this::makeUser);
     }
 
-    static User makeUser(ResultSet rs, int rowNum) throws SQLException {
+    private User makeUser(ResultSet rs, int rowNum) throws SQLException {
         return new User(
                 rs.getInt("user_id"),
                 rs.getString("email"),
@@ -76,7 +74,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User getUserById(int id) {
-        List<User> users = jdbcTemplate.query("select * from user where user_id=?", UserDbStorage::makeUser, id);
+        List<User> users = jdbcTemplate.query("select * from user where user_id=?", this::makeUser, id);
         if (!users.isEmpty()) {
             log.info("Найден пользователь: {} {}", users.get(0).getId(), users.get(0).getName());
             return users.get(0);

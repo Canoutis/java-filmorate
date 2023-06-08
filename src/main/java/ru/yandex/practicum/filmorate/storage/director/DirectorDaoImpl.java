@@ -1,9 +1,8 @@
 package ru.yandex.practicum.filmorate.storage.director;
 
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -20,14 +19,14 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-@AllArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor
 public class DirectorDaoImpl implements DirectorDao {
 
     private final JdbcTemplate jdbcTemplate;
 
     @Override
     public List<Director> findAll() {
-        return jdbcTemplate.query("select * from director", DirectorDaoImpl::makeDirector);
+        return jdbcTemplate.query("select * from director", this::makeDirector);
     }
 
     @Override
@@ -60,9 +59,10 @@ public class DirectorDaoImpl implements DirectorDao {
     @Override
     public Optional<Director> update(Director director) {
         String sqlQuery = "update director set " +
-                "name = ?";
+                "name = ? " +
+                "where director_id = ? ";
         int response = jdbcTemplate.update(sqlQuery,
-                director.getName());
+                director.getName(), director.getId());
         if (response == 1) {
             return getDirectorById(director.getId());
         } else {
@@ -84,7 +84,7 @@ public class DirectorDaoImpl implements DirectorDao {
     }
 
 
-    static Director makeDirector(ResultSet rs, int rowNum) throws SQLException {
+    private Director makeDirector(ResultSet rs, int rowNum) throws SQLException {
         return new Director(
                 rs.getInt("director_id"),
                 rs.getString("name")

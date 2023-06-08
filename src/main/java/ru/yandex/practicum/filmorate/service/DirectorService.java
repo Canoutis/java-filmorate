@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ObjectSaveException;
@@ -13,14 +13,10 @@ import java.util.Optional;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class DirectorService {
 
     private final DirectorDao directorDao;
-
-    @Autowired
-    public DirectorService(DirectorDao directorDao) {
-        this.directorDao = directorDao;
-    }
 
     public Director create(Director director) {
         Optional<Director> createdDirector = directorDao.create(director);
@@ -32,8 +28,8 @@ public class DirectorService {
     }
 
     public Director update(Director director) {
-        Optional<Director> createdDirector = directorDao.update(director);
-        if (createdDirector.isPresent()) return createdDirector.get();
+        Optional<Director> updatedDirector = directorDao.update(director);
+        if (updatedDirector.isPresent()) return updatedDirector.get();
         else {
             log.info("Ошибка обновления режиссера: {}", director);
             throw new ObjectSaveException(String.format("Ошибка обновления режиссера. Ошибка входных данных! %s", director));

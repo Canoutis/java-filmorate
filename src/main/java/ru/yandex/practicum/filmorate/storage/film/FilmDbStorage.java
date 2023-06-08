@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @Qualifier("FilmDbStorage")
+@RequiredArgsConstructor
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
@@ -41,17 +42,9 @@ public class FilmDbStorage implements FilmStorage {
     private final GenreDao genreDao;
     private final DirectorDao directorDao;
 
-    @Autowired
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaRatingDao mpaRatingDao, GenreDao genreDao, DirectorDao directorDao) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.mpaRatingDao = mpaRatingDao;
-        this.genreDao = genreDao;
-        this.directorDao = directorDao;
-    }
-
     @Override
     public List<Film> findAll() {
-        List<Film> films = jdbcTemplate.query("select * from film f inner join mpa_rating m where f.rating_id = m.rating_id", FilmDbStorage::makeFilm);
+        List<Film> films = jdbcTemplate.query("select * from film f inner join mpa_rating m where f.rating_id = m.rating_id", this::makeFilm);
         Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
         Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
         for (Film film : films) {
@@ -61,7 +54,7 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
-    static Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
+    private Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
         return new Film(
                 rs.getInt("film_id"),
                 rs.getString("name"),
@@ -149,7 +142,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilmById(int id) {
-        List<Film> films = jdbcTemplate.query("select * from film f inner join mpa_rating m where f.rating_id = m.rating_id and f.film_id=?", FilmDbStorage::makeFilm, id);
+        List<Film> films = jdbcTemplate.query("select * from film f inner join mpa_rating m where f.rating_id = m.rating_id and f.film_id=?", this::makeFilm, id);
         Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
         Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
         if (!films.isEmpty()) {
@@ -300,7 +293,7 @@ public class FilmDbStorage implements FilmStorage {
                 "inner join film f on fd.film_id = f.film_id " +
                 "inner join mpa_rating m on m.rating_id = f.rating_id " +
                 "where fd.director_id=? " +
-                "order by f.release_date", FilmDbStorage::makeFilm, directorId);
+                "order by f.release_date", this::makeFilm, directorId);
         Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
         Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
         for (Film film : films) {
@@ -318,7 +311,7 @@ public class FilmDbStorage implements FilmStorage {
                 "inner join film f on fd.film_id = f.film_id " +
                 "inner join mpa_rating m on m.rating_id = f.rating_id " +
                 "where fd.director_id=? " +
-                "order by like_count desc", FilmDbStorage::makeFilm, directorId);
+                "order by like_count desc", this::makeFilm, directorId);
         Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
         Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
         for (Film film : films) {
