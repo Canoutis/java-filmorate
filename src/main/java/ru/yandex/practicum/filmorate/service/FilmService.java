@@ -58,6 +58,10 @@ public class FilmService {
         return filmStorage.getPopularFilms(count);
     }
 
+    public void removeFilmById(int filmId) {
+        filmStorage.removeFilmById(filmId);
+    }
+
     private boolean isInvalidFilm(Film film) {
         return film.getReleaseDate().isBefore(MIN_POSSIBLE_DATE);
     }
