@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS review (
   is_positive boolean default null,
   user_id integer NOT NULL,
   film_id integer NOT NULL,
-  useful integer default 0,
+  useful integer,
   CONSTRAINT review_fk_1 FOREIGN KEY (USER_ID) REFERENCES "USER"(USER_ID) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT review_fk_2 FOREIGN KEY (FILM_ID) REFERENCES FILM(FILM_ID) ON DELETE RESTRICT ON UPDATE RESTRICT
 );

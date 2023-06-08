@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
@@ -32,7 +33,9 @@ public class ReviewDaoImpl implements ReviewDao {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("review")
                 .usingGeneratedKeyColumns("review_id");
-        return getReviewById(simpleJdbcInsert.executeAndReturnKey(review.toMap()).intValue());
+        int reviewId = simpleJdbcInsert.executeAndReturnKey(review.toMap()).intValue();
+        setUseful(reviewId,0);
+        return getReviewById(reviewId);
     }
 
     @Override
@@ -75,10 +78,10 @@ public class ReviewDaoImpl implements ReviewDao {
     public List<Review> findReviews(Integer filmId, Integer count) {
         if (filmId != null) {
             sqlQuery = "select * from review where film_id = ? order by useful desc, review_id limit ?";
-            return jdbcTemplate.query(sqlQuery, this::makeReview, filmId, count);
+            return new LinkedList<>(jdbcTemplate.query(sqlQuery, this::makeReview, filmId, count));
         } else {
-            sqlQuery = "select * from review order by useful desc, review_id limit ?";
-            return jdbcTemplate.query(sqlQuery, this::makeReview, count);
+            sqlQuery = "select * from review order by useful desc";
+            return new LinkedList<>(jdbcTemplate.query(sqlQuery, this::makeReview));
         }
     }
 
@@ -131,7 +134,11 @@ public class ReviewDaoImpl implements ReviewDao {
 
     private void changeUseful(Integer reviewId, Integer delta) {
         Review review = getReviewById(reviewId);
+        setUseful(reviewId, review.getUseful() + delta);
+    }
+
+    private void setUseful(Integer reviewId, Integer useful) {
         sqlQuery = "update review set useful = ? where review_id = ?";
-        jdbcTemplate.update(sqlQuery, review.getUseful() + delta, reviewId);
+        jdbcTemplate.update(sqlQuery, useful, reviewId);
     }
 }
