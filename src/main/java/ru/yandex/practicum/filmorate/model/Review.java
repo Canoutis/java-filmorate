@@ -21,7 +21,7 @@ public class Review {
     private Integer userId;
     @NotNull
     private Integer filmId;
-    private Integer useful;
+    private int useful;
 
     public Map<String, Object> toMap() {
         Map<String, Object> values = new HashMap<>();

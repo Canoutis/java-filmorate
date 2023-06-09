@@ -33,9 +33,7 @@ public class ReviewDaoImpl implements ReviewDao {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("review")
                 .usingGeneratedKeyColumns("review_id");
-        int reviewId = simpleJdbcInsert.executeAndReturnKey(review.toMap()).intValue();
-        setUseful(reviewId,0);
-        return getReviewById(reviewId);
+        return getReviewById(simpleJdbcInsert.executeAndReturnKey(review.toMap()).intValue());
     }
 
     @Override
@@ -56,6 +54,10 @@ public class ReviewDaoImpl implements ReviewDao {
     @Override
     public Review getReviewById(Integer reviewId) {
         sqlQuery = "select * from review where review_id = ?";
+
+        //var rowMapper = BeanPropertyRowMapper.newInstance(Review.class);
+        //var reviews = jdbcTemplate.query(sqlQuery, rowMapper);
+
         SqlRowSet row = jdbcTemplate.queryForRowSet(sqlQuery, reviewId);
         if (row.next()) {
             log.info("Найден отзыв с идентификатором {}", reviewId);
@@ -133,12 +135,8 @@ public class ReviewDaoImpl implements ReviewDao {
     }
 
     private void changeUseful(Integer reviewId, Integer delta) {
-        Review review = getReviewById(reviewId);
-        setUseful(reviewId, review.getUseful() + delta);
-    }
-
-    private void setUseful(Integer reviewId, Integer useful) {
+        var review = getReviewById(reviewId);
         sqlQuery = "update review set useful = ? where review_id = ?";
-        jdbcTemplate.update(sqlQuery, useful, reviewId);
+        jdbcTemplate.update(sqlQuery, review.getUseful() + delta, reviewId);
     }
 }
