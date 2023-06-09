@@ -256,7 +256,6 @@ public class FilmDbStorage implements FilmStorage {
         List<Film> films = jdbcTemplate.query("select f.*, mpa_rating.rating_name " +
                 "from film AS f " +
                 "left join likes AS l USING(film_id) " +
-//                 "join film_genre AS fg USING(film_id) " +
                 "inner join mpa_rating USING(rating_id)" +
                 "where EXTRACT(YEAR from release_date) = ? " +
                 "group by f.film_id " +
