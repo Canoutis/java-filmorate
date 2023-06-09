@@ -146,6 +146,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getUserFriends(int userId) {
+        getUserById(userId);
         SqlRowSet userRows = jdbcTemplate.queryForRowSet("select u.* " +
                         "from user u " +
                         "where u.user_id in ( " +
@@ -179,5 +180,14 @@ public class UserDbStorage implements UserStorage {
         return targetFriends.stream()
                 .filter(userFriends::contains)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void removeUserById(int userId) {
+        getUserById(userId);
+        String sqlQuery = "delete from user " +
+                "where user_id = ?";
+        jdbcTemplate.update(sqlQuery, userId);
+        log.debug("Пользователь с ID = {} удален.", userId);
     }
 }

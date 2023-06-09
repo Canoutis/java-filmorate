@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -17,6 +18,13 @@ import java.util.List;
 public class UserDbStorageTest {
 
     private final UserDbStorage userStorage;
+
+    @Test
+    @BeforeEach
+    public void cleanUsers() {
+        List<User> users = userStorage.findAll();
+        users.forEach(user -> userStorage.removeUserById(user.getId()));
+    }
 
     @Test
     public void testOneUserCreate() {
@@ -158,5 +166,19 @@ public class UserDbStorageTest {
         userStorage.addFriendToUser(createdUser2.getId(), createdUser3.getId());
         Assertions.assertEquals(1, userStorage.getMutualFriends(createdUser.getId(), createdUser2.getId()).size());
         Assertions.assertEquals(createdUser3, userStorage.getMutualFriends(createdUser.getId(), createdUser2.getId()).get(0));
+    }
+
+    @Test
+    public void testRemoveOneUserGetById() {
+        User tempUser = User.builder()
+                .name("Test")
+                .email("mail@etcdev.ru")
+                .login("canoutis")
+                .birthday(LocalDate.of(1998, 5, 27))
+                .build();
+        User createdUser = userStorage.create(tempUser);
+        userStorage.removeUserById(createdUser.getId());
+        Assertions.assertTrue(userStorage.findAll().isEmpty());
+
     }
 }

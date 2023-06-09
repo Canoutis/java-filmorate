@@ -20,4 +20,6 @@ public interface UserStorage {
     List<User> getUserFriends(int userId);
 
     List<User> getMutualFriends(int userId, int targetId);
+
+    void removeUserById(int userId);
 }

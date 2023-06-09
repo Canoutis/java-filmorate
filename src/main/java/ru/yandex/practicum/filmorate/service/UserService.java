@@ -51,4 +51,8 @@ public class UserService {
     public List<User> getMutualFriends(int userId, int targetId) {
         return userStorage.getMutualFriends(userId, targetId);
     }
+
+    public void removeUserById(int userId) {
+        userStorage.removeUserById(userId);
+    }
 }

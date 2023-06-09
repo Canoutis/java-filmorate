@@ -220,4 +220,12 @@ public class FilmDbStorage implements FilmStorage {
         }
         return getFilmById(filmId);
     }
+
+    @Override
+    public void removeFilmById(int filmId) {
+        getFilmById(filmId);
+        String deleteFilmQuery = "DELETE FROM film WHERE film_id = ?";
+        jdbcTemplate.update(deleteFilmQuery, filmId);
+        log.debug("Фильм с ID = {} удален.", filmId);
+    }
 }
