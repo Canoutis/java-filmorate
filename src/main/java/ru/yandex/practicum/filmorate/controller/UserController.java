@@ -1,13 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -52,6 +46,11 @@ public class UserController {
     @DeleteMapping(value = "/users/{id}/friends/{friendId}")
     public User removeFriendFromUser(@PathVariable int id, @PathVariable int friendId) {
         return userService.removeFriendFromUser(id, friendId);
+    }
+
+    @DeleteMapping(value = "/users/{id}")
+    public void removeUserById(@PathVariable int id) {
+        userService.removeUserById(id);
     }
 
     @GetMapping(value = "/users/{id}/friends")
