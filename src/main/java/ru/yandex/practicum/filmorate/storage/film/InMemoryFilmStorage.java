@@ -66,6 +66,30 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getPopularByYear(int releaseYear, int count) {
+        return findAll()
+                .stream()
+                .sorted(Comparator.comparingInt(film -> -film.getLikes().size())).limit(count)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Film> getPopularByGenreAndYear(int genreId, int releaseYear, int count) {
+        return findAll()
+                .stream()
+                .sorted(Comparator.comparingInt(film -> -film.getLikes().size())).limit(count)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Film> getPopularByGenre(int genreId, int count) {
+        return findAll()
+                .stream()
+                .sorted(Comparator.comparingInt(film -> -film.getLikes().size())).limit(count)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public Film removeUserLike(int filmId, int userId) {
         Film film = getFilmById(filmId);
         film.getLikes().remove(userId);
