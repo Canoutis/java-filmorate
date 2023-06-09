@@ -2,17 +2,15 @@ package ru.yandex.practicum.filmorate.storage.review;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -54,22 +52,11 @@ public class ReviewDaoImpl implements ReviewDao {
     @Override
     public Review getReviewById(Integer reviewId) {
         sqlQuery = "select * from review where review_id = ?";
-
-        //var rowMapper = BeanPropertyRowMapper.newInstance(Review.class);
-        //var reviews = jdbcTemplate.query(sqlQuery, rowMapper);
-
-        SqlRowSet row = jdbcTemplate.queryForRowSet(sqlQuery, reviewId);
-        if (row.next()) {
-            log.info("Найден отзыв с идентификатором {}", reviewId);
-            return Review.builder()
-                    .reviewId(row.getInt("review_id"))
-                    .content(row.getString("content"))
-                    .isPositive(row.getBoolean("is_positive"))
-                    .userId(row.getInt("user_id"))
-                    .filmId(row.getInt("film_id"))
-                    .useful(row.getInt("useful"))
-                    .build();
-        } else {
+        var rowMapper = BeanPropertyRowMapper.newInstance(Review.class);
+        var reviews = jdbcTemplate.query(sqlQuery, rowMapper, reviewId);
+        if (reviews.size() == 1)
+            return reviews.get(0);
+        else {
             log.info("Отзыв с идентификатором {} не найден.", reviewId);
             throw new ObjectNotFoundException(
                     String.format("Ошибка получения отзыва. Отзыв не найден! Id=%d", reviewId));
@@ -78,12 +65,13 @@ public class ReviewDaoImpl implements ReviewDao {
 
     @Override
     public List<Review> findReviews(Integer filmId, Integer count) {
+        var rowMapper = BeanPropertyRowMapper.newInstance(Review.class);
         if (filmId != null) {
             sqlQuery = "select * from review where film_id = ? order by useful desc, review_id limit ?";
-            return new LinkedList<>(jdbcTemplate.query(sqlQuery, this::makeReview, filmId, count));
+            return new LinkedList<>(jdbcTemplate.query(sqlQuery, rowMapper, filmId, count));
         } else {
             sqlQuery = "select * from review order by useful desc";
-            return new LinkedList<>(jdbcTemplate.query(sqlQuery, this::makeReview));
+            return new LinkedList<>(jdbcTemplate.query(sqlQuery, rowMapper));
         }
     }
 
@@ -105,17 +93,6 @@ public class ReviewDaoImpl implements ReviewDao {
     @Override
     public void removeDislikeFromReview(Integer reviewId, Integer userId) {
         removeFeedback(reviewId, userId, false);
-    }
-
-    private Review makeReview(ResultSet rs, int rowNum) throws SQLException {
-        return Review.builder()
-                .reviewId(rs.getInt("review_id"))
-                .content(rs.getString("content"))
-                .isPositive(rs.getBoolean("is_positive"))
-                .userId(rs.getInt("user_id"))
-                .filmId(rs.getInt("film_id"))
-                .useful(rs.getInt("useful"))
-                .build();
     }
 
     private void addFeedback(Integer reviewId, Integer userId, Boolean isUseful) {
