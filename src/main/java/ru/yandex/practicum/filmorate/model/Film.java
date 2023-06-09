@@ -32,6 +32,7 @@ public class Film {
     private int duration;
     private final Set<Integer> likes = new HashSet<>();
     private final List<Genre> genres = new ArrayList<>();
+    private final List<Director> directors = new ArrayList<>();
     private MpaRating mpa;
 
     public Map<String, Object> toMap() {
