@@ -64,6 +64,9 @@ public class FilmService {
         } else {
             return filmStorage.getDirectorFilmsSortedByLikes(directorId);
         }
+
+    public void removeFilmById(int filmId) {
+        filmStorage.removeFilmById(filmId);
     }
 
     private boolean isInvalidFilm(Film film) {

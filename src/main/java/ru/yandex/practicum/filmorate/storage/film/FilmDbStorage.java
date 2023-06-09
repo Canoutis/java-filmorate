@@ -286,6 +286,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+
     public List<Film> getDirectorFilmsSortedByYear(int directorId) {
         directorDao.getDirectorById(directorId);
         List<Film> films = jdbcTemplate.query("select * " +
@@ -319,6 +320,14 @@ public class FilmDbStorage implements FilmStorage {
             film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
         }
         return films;
+    }
+
+
+    public void removeFilmById(int filmId) {
+        getFilmById(filmId);
+        String deleteFilmQuery = "DELETE FROM film WHERE film_id = ?";
+        jdbcTemplate.update(deleteFilmQuery, filmId);
+        log.debug("Фильм с ID = {} удален.", filmId);
     }
 
 }
