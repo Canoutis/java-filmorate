@@ -16,6 +16,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.storage.director.DirectorDao;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDao;
+import ru.yandex.practicum.filmorate.storage.mpa.MpaRatingDao;
 import ru.yandex.practicum.filmorate.utils.Constant;
 
 import java.sql.ResultSet;
