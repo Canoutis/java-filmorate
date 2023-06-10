@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -73,4 +74,21 @@ public class FilmService {
     private boolean isInvalidFilm(Film film) {
         return film.getReleaseDate().isBefore(MIN_POSSIBLE_DATE);
     }
+
+    public List<Film> filmSearch(String query, String searchBy) {
+        List<Film> films;
+
+        if (searchBy.contains("title") && searchBy.contains("director")) {
+            films = filmStorage.findByTitleContainingOrDirectorContaining(query, query);
+        } else if (searchBy.equals("title")) {
+            films = filmStorage.findByTitleContaining(query);
+        } else if (searchBy.equals("director")) {
+            films = filmStorage.findByDirectorContaining(query);
+        } else {
+            films = Collections.emptyList();
+        }
+
+        return films;
+    }
+
 }

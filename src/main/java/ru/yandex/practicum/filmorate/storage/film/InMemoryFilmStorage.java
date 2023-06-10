@@ -90,4 +90,19 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new ObjectNotFoundException(String.format("Фильм не найден! %x", filmId));
         }
     }
+
+    @Override
+    public List<Film> findByTitleContaining(String query) {
+        return null;
+    }
+
+    @Override
+    public List<Film> findByDirectorContaining(String query) {
+        return null;
+    }
+
+    @Override
+    public List<Film> findByTitleContainingOrDirectorContaining(String titleQuery, String directorQuery) {
+        return null;
+    }
 }

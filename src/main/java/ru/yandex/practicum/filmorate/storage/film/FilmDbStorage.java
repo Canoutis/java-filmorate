@@ -21,14 +21,7 @@ import ru.yandex.practicum.filmorate.utils.Constant;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -328,6 +321,65 @@ public class FilmDbStorage implements FilmStorage {
         String deleteFilmQuery = "DELETE FROM film WHERE film_id = ?";
         jdbcTemplate.update(deleteFilmQuery, filmId);
         log.debug("Фильм с ID = {} удален.", filmId);
+    }
+
+    @Override
+    public List<Film> findByTitleContaining(String query) {
+        String sql = "SELECT * FROM FILM WHERE LOWER(NAME) LIKE ?";
+        String param = "%" + query.toLowerCase() + "%";
+        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> filmMapper(rs), param);
+        Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
+        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
+        for (Film film : films) {
+            film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
+            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
+        }
+        return films;
+    }
+
+    @Override
+    public List<Film> findByDirectorContaining(String query) {
+        String sql = "SELECT F.* FROM FILM F INNER JOIN FILM_DIRECTOR FD ON F.FILM_ID = FD.FILM_ID " +
+                "INNER JOIN DIRECTOR D ON FD.DIRECTOR_ID = D.DIRECTOR_ID WHERE LOWER(D.NAME) LIKE ?";
+        String param = "%" + query.toLowerCase() + "%";
+        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> filmMapper(rs), param);
+        Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
+        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
+        for (Film film : films) {
+            film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
+            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
+        }
+        return films;
+    }
+
+    @Override
+    public List<Film> findByTitleContainingOrDirectorContaining(String titleQuery, String directorQuery) {
+        String sql = "SELECT F.* FROM FILM F LEFT JOIN FILM_DIRECTOR FD ON F.FILM_ID = FD.FILM_ID " +
+                "LEFT JOIN DIRECTOR D ON FD.DIRECTOR_ID = D.DIRECTOR_ID " +
+                "WHERE LOWER(F.NAME) LIKE ? OR LOWER(D.NAME) LIKE ?";
+        String titleParam = "%" + titleQuery.toLowerCase() + "%";
+        String directorParam = "%" + directorQuery.toLowerCase() + "%";
+        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> filmMapper(rs), titleParam, directorParam);
+        Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
+        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
+        for (Film film : films) {
+            film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
+            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
+        }
+        Collections.sort(films, Comparator.comparingInt(film -> film.getLikes().size()));
+        Collections.reverse(films);
+        return films;
+    }
+
+    private Film filmMapper(ResultSet rs) throws SQLException {
+        return new Film(
+                rs.getInt("film_id"),
+                rs.getString("name"),
+                rs.getString("description"),
+                Objects.requireNonNull(rs.getDate("release_date")).toLocalDate(),
+                rs.getInt("duration"),
+                mpaRatingDao.getMpaRatingById(rs.getInt("rating_id"))
+        );
     }
 
 }
