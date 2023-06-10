@@ -131,7 +131,7 @@ public class FilmDbStorageTest {
                 .build();
         User createdUser2 = userDbStorage.create(user2);
         filmDbStorage.addUserLike(createdFilm2.getId(), createdUser2.getId());
-        Film newMostPopularFilm = filmDbStorage.getPopularFilms(1).get(0);
+        Film newMostPopularFilm = filmDbStorage.getPopularFilms(2).get(0);
         Assertions.assertEquals(createdFilm2.getId(), newMostPopularFilm.getId());
         filmDbStorage.removeUserLike(createdFilm2.getId(), createdUser2.getId());
         filmDbStorage.removeUserLike(createdFilm2.getId(), createdUser.getId());
