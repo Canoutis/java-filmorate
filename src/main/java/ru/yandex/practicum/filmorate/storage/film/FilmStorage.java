@@ -18,4 +18,8 @@ public interface FilmStorage {
     List<Film> getPopularFilms(int count);
 
     Film removeUserLike(int filmId, int userId);
+
+    List<Film> getFilmsByUserId(int userId);
+
+    List<Film> getFilmsByFriendId(int friendId);
 }

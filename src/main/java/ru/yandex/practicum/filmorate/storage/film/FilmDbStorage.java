@@ -19,13 +19,7 @@ import ru.yandex.practicum.filmorate.utils.Constant;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -219,5 +213,28 @@ public class FilmDbStorage implements FilmStorage {
             );
         }
         return getFilmById(filmId);
+    }
+
+    @Override
+    public List<Film> getFilmsByUserId(int userId) {
+        String sql = "SELECT f.* FROM film f JOIN likes l ON l.film_id = f.film_id WHERE l.user_id = ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> filmMapper(rs), userId);
+    }
+
+    @Override
+    public List<Film> getFilmsByFriendId(int friendId) {
+        String sql = "SELECT f.* FROM film f JOIN likes l ON l.film_id = f.film_id WHERE l.user_id = ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> filmMapper(rs), friendId);
+    }
+
+    private Film filmMapper(ResultSet rs) throws SQLException {
+        return new Film(
+                rs.getInt("film_id"),
+                rs.getString("name"),
+                rs.getString("description"),
+                Objects.requireNonNull(rs.getDate("release_date")).toLocalDate(),
+                rs.getInt("duration"),
+                mpaRatingDao.getMpaRatingById(rs.getInt("rating_id"))
+        );
     }
 }

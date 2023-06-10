@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.utils.Constant;
 
 import javax.validation.constraints.NotBlank;
@@ -18,6 +19,7 @@ import java.util.Set;
 
 @Data
 @Builder
+@NoArgsConstructor
 public class Film {
     private int id;
     @NotBlank
