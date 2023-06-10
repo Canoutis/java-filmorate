@@ -366,7 +366,7 @@ public class FilmDbStorage implements FilmStorage {
             film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
             film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
         }
-        Collections.sort(films, Comparator.comparingInt(film -> film.getLikes().size()));
+        films.sort(Comparator.comparingInt(film -> film.getLikes().size()));
         Collections.reverse(films);
         return films;
     }
@@ -381,5 +381,4 @@ public class FilmDbStorage implements FilmStorage {
                 mpaRatingDao.getMpaRatingById(rs.getInt("rating_id"))
         );
     }
-
 }
