@@ -7,9 +7,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
+import ru.yandex.practicum.filmorate.utils.EventType;
+import ru.yandex.practicum.filmorate.utils.Operation;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -31,20 +34,24 @@ public class ReviewDaoImpl implements ReviewDao {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("review")
                 .usingGeneratedKeyColumns("review_id");
-        return getReviewById(simpleJdbcInsert.executeAndReturnKey(review.toMap()).intValue());
+        review.setReviewId(simpleJdbcInsert.executeAndReturnKey(review.toMap()).intValue());
+        userDbStorage.addEvent(new Event(review.getUserId(), EventType.REVIEW, Operation.ADD, review.getReviewId()));
+        return getReviewById(review.getReviewId());
     }
 
     @Override
     public Review updateReview(Review review) {
-        getReviewById(review.getReviewId());
+        var reviewEx = getReviewById(review.getReviewId());
         sqlQuery = "update review set content = ?, is_positive = ? where review_id = ?";
         jdbcTemplate.update(sqlQuery, review.getContent(), review.getIsPositive(), review.getReviewId());
+        userDbStorage.addEvent(new Event(reviewEx.getUserId(), EventType.REVIEW, Operation.UPDATE, review.getReviewId()));
         return getReviewById(review.getReviewId());
     }
 
     @Override
     public void removeReview(Integer reviewId) {
-        getReviewById(reviewId);
+        var review = getReviewById(reviewId);
+        userDbStorage.addEvent(new Event(review.getUserId(), EventType.REVIEW, Operation.REMOVE, review.getReviewId()));
         sqlQuery = "delete from review where review_id = ?";
         jdbcTemplate.update(sqlQuery, reviewId);
     }

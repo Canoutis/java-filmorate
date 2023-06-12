@@ -10,13 +10,13 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.MpaRating;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.director.DirectorDao;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDao;
+import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.utils.Constant;
+import ru.yandex.practicum.filmorate.utils.EventType;
+import ru.yandex.practicum.filmorate.utils.Operation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,6 +32,7 @@ public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final GenreDao genreDao;
     private final DirectorDao directorDao;
+    private final UserDbStorage userDbStorage;
 
     @Override
     public List<Film> findAll() {
@@ -234,6 +235,7 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sqlQuery,
                 filmId, userId,
                 filmId, userId);
+        userDbStorage.addEvent(new Event(userId, EventType.LIKE, Operation.ADD, filmId));
         return getFilmById(filmId);
     }
 
@@ -321,6 +323,7 @@ public class FilmDbStorage implements FilmStorage {
                     String.format("Ошибка обновления фильма! Не найден лайк FilmId=%d, UserId=%d", filmId, userId)
             );
         }
+        userDbStorage.addEvent(new Event(userId, EventType.LIKE, Operation.REMOVE, filmId));
         return getFilmById(filmId);
     }
 
