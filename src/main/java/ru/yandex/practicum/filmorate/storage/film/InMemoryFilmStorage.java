@@ -114,4 +114,9 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new ObjectNotFoundException(String.format("Фильм не найден! %x", filmId));
         }
     }
+
+    @Override
+    public List<Film> getRecommendations(int userId) {
+        return null;
+    }
 }

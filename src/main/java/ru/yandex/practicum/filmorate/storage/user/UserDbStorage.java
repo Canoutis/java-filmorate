@@ -10,8 +10,6 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ObjectSaveException;
 import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.utils.Constant;
 
@@ -189,36 +187,5 @@ public class UserDbStorage implements UserStorage {
                 "where user_id = ?";
         jdbcTemplate.update(sqlQuery, userId);
         log.debug("Пользователь с ID = {} удален.", userId);
-    }
-
-   @Override
-    public List<Film> getRecommendations(int userId) {
-        List<Film> films = new ArrayList<>();
-        var sqlQuery = "SELECT *\n" +
-                "FROM FILM f \n" +
-                "WHERE FILM_ID IN (SELECT l2.FILM_ID \n" +
-                "FROM LIKES AS l2 \n" +
-                "WHERE l2.USER_ID = (SELECT USER_ID\n" +
-                "FROM LIKES l \n" +
-                "WHERE USER_ID != " + userId + " AND FILM_ID IN (SELECT FILM_ID FROM LIKES l2 WHERE USER_ID = " + userId + ")\n" +
-                "GROUP BY USER_ID \n" +
-                "ORDER BY COUNT(FILM_ID) DESC \n" +
-                "LIMIT 1) AND l2.FILM_ID NOT IN \n" +
-                "(SELECT l.FILM_ID \n" +
-                "FROM LIKES AS l \n" +
-                "WHERE l.USER_ID = " + userId + "))";
-        SqlRowSet filmsRows = jdbcTemplate.queryForRowSet(sqlQuery);
-        while (filmsRows.next()) {
-            Film film = new Film(
-                    filmsRows.getInt("film_id"),
-                    filmsRows.getString("name"),
-                    filmsRows.getString("description"),
-                    Objects.requireNonNull(filmsRows.getDate("release_date")).toLocalDate(),
-                    filmsRows.getInt("duration"),
-                    new MpaRating(filmsRows.getInt("rating_id"), filmsRows.getString("rating_name"))
-            );
-            films.add(film);
-        }
-        return films;
     }
 }
