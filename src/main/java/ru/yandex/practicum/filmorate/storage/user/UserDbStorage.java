@@ -200,7 +200,7 @@ public class UserDbStorage implements UserStorage {
                 "FROM LIKES AS l2 \n" +
                 "WHERE l2.USER_ID = (SELECT USER_ID\n" +
                 "FROM LIKES l \n" +
-                "WHERE USER_ID != " + userId + " AND FILM_ID IN (SELECT FILM_ID FROM LIKES l2 WHERE USER_ID = "+userId+")\n" +
+                "WHERE USER_ID != " + userId + " AND FILM_ID IN (SELECT FILM_ID FROM LIKES l2 WHERE USER_ID = " + userId + ")\n" +
                 "GROUP BY USER_ID \n" +
                 "ORDER BY COUNT(FILM_ID) DESC \n" +
                 "LIMIT 1) AND l2.FILM_ID NOT IN \n" +
