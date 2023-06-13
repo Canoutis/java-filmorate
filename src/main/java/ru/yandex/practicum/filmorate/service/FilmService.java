@@ -101,8 +101,11 @@ public class FilmService {
             films = Collections.emptyList();
             log.info("Поиск можно сделать только по режиссеру и названию");
         }
-
         return films;
+    }
+
+    public List<Film> getRecommendations(int userId) {
+        return filmStorage.getRecommendations(userId);
     }
 
 }

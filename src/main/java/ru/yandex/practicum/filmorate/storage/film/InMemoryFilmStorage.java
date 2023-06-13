@@ -129,4 +129,10 @@ public class InMemoryFilmStorage implements FilmStorage {
     public List<Film> findByTitleContainingOrDirectorContaining(String titleQuery, String directorQuery) {
         return null;
     }
+  
+    @Override
+    public List<Film> getRecommendations(int userId) {
+        return null;
+    }
+  
 }

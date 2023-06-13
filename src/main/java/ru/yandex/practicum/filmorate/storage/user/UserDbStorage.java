@@ -10,8 +10,11 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ObjectSaveException;
 import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.utils.Constant;
+import ru.yandex.practicum.filmorate.utils.EventType;
+import ru.yandex.practicum.filmorate.utils.Operation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -110,6 +113,7 @@ public class UserDbStorage implements UserStorage {
                     userId,
                     friendId);
         }
+        addEvent(new Event(userId, EventType.FRIEND, Operation.REMOVE, friendId));
         return getUserById(userId);
     }
 
@@ -128,6 +132,7 @@ public class UserDbStorage implements UserStorage {
                     userId, friendId,
                     userId, friendId);
         }
+        addEvent(new Event(userId, EventType.FRIEND, Operation.ADD, friendId));
         return getUserById(userId);
     }
 
@@ -187,5 +192,24 @@ public class UserDbStorage implements UserStorage {
                 "where user_id = ?";
         jdbcTemplate.update(sqlQuery, userId);
         log.debug("Пользователь с ID = {} удален.", userId);
+    }
+
+    @Override
+    public List<Event> getFeed(int userId) {
+        getUserById(userId);
+        var sqlQuery = "select * from event where user_id = ? order by ts";
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> Event.builder()
+                .eventId(rs.getInt("event_id"))
+                .timestamp(rs.getLong("ts"))
+                .userId(rs.getInt("user_id"))
+                .eventType(rs.getString("event_type"))
+                .operation(rs.getString("operation"))
+                .entityId(rs.getInt("entity_id"))
+                .build(), userId);
+    }
+
+    @Override
+    public void addEvent(Event event) {
+        new SimpleJdbcInsert(jdbcTemplate).withTableName("event").execute(event.toMap());
     }
 }

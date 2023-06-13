@@ -10,14 +10,14 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.MpaRating;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.director.DirectorDao;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDao;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaRatingDao;
+import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.utils.Constant;
+import ru.yandex.practicum.filmorate.utils.EventType;
+import ru.yandex.practicum.filmorate.utils.Operation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -42,6 +42,7 @@ public class FilmDbStorage implements FilmStorage {
     private final MpaRatingDao mpaRatingDao;
     private final GenreDao genreDao;
     private final DirectorDao directorDao;
+    private final UserDbStorage userDbStorage;
 
     @Override
     public List<Film> findAll() {
@@ -244,6 +245,7 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sqlQuery,
                 filmId, userId,
                 filmId, userId);
+        userDbStorage.addEvent(new Event(userId, EventType.LIKE, Operation.ADD, filmId));
         return getFilmById(filmId);
     }
 
@@ -331,6 +333,7 @@ public class FilmDbStorage implements FilmStorage {
                     String.format("Ошибка обновления фильма! Не найден лайк FilmId=%d, UserId=%d", filmId, userId)
             );
         }
+        userDbStorage.addEvent(new Event(userId, EventType.LIKE, Operation.REMOVE, filmId));
         return getFilmById(filmId);
     }
 
@@ -377,6 +380,32 @@ public class FilmDbStorage implements FilmStorage {
         String deleteFilmQuery = "DELETE FROM film WHERE film_id = ?";
         jdbcTemplate.update(deleteFilmQuery, filmId);
         log.debug("Фильм с ID = {} удален.", filmId);
+    }
+
+@Override
+    public List<Film> getRecommendations(int userId) {
+        var sqlQuery = "SELECT *\n" +
+                "FROM FILM f \n" +
+                "JOIN MPA_RATING AS r ON r.RATING_ID = f.RATING_ID\n" +
+                "WHERE FILM_ID IN (SELECT l2.FILM_ID \n" +
+                "FROM LIKES AS l2 \n" +
+                "WHERE l2.USER_ID = (SELECT USER_ID\n" +
+                "FROM LIKES l \n" +
+                "WHERE USER_ID != " + userId + " AND FILM_ID IN (SELECT FILM_ID FROM LIKES l2 WHERE USER_ID = " + userId + ")\n" +
+                "GROUP BY USER_ID \n" +
+                "ORDER BY COUNT(FILM_ID) DESC \n" +
+                "LIMIT 1) AND l2.FILM_ID NOT IN \n" +
+                "(SELECT l.FILM_ID \n" +
+                "FROM LIKES AS l \n" +
+                "WHERE l.USER_ID = " + userId + "))";
+        List<Film> films = jdbcTemplate.query(sqlQuery, this::makeFilm);
+        Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
+        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
+        for (Film film : films) {
+            film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
+            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
+        }
+        return films;
     }
 
     @Override
@@ -433,4 +462,5 @@ public class FilmDbStorage implements FilmStorage {
         Collections.reverse(films);
         return films;
     }
+
 }
