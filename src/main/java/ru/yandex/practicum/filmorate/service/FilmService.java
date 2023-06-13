@@ -57,8 +57,28 @@ public class FilmService {
         return filmStorage.removeUserLike(filmId, userId);
     }
 
-    public List<Film> getPopularFilms(int count) {
-        return filmStorage.getPopularFilms(count);
+    public List<Film> getPopular(int count, int genreId, int year) {
+        if (genreId == 0 && year == 0) {
+            return filmStorage.getPopularFilms(count);
+        } else if (genreId != 0 && year != 0) {
+            return filmStorage.getPopularByGenreAndYear(genreId, year, count);
+        } else if (genreId != 0) {
+            return filmStorage.getPopularByGenre(genreId, count);
+        } else {
+            return filmStorage.getPopularByYear(year, count);
+        }
+    }
+
+    public List<Film> getDirectorSortedPopularFilms(int directorId, String sortBy) {
+        if ("year".equals(sortBy)) {
+            return filmStorage.getDirectorFilmsSortedByYear(directorId);
+        } else {
+            return filmStorage.getDirectorFilmsSortedByLikes(directorId);
+        }
+    }
+
+    public void removeFilmById(int filmId) {
+        filmStorage.removeFilmById(filmId);
     }
 
     public List<Film> getCommonFilms(int userId, int friendId) {
@@ -77,5 +97,9 @@ public class FilmService {
 
     private boolean isInvalidFilm(Film film) {
         return film.getReleaseDate().isBefore(MIN_POSSIBLE_DATE);
+    }
+
+    public List<Film> getRecommendations(int userId) {
+        return filmStorage.getRecommendations(userId);
     }
 }

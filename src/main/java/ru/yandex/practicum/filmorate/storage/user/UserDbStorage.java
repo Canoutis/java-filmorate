@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,8 +10,11 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ObjectSaveException;
 import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.utils.Constant;
+import ru.yandex.practicum.filmorate.utils.EventType;
+import ru.yandex.practicum.filmorate.utils.Operation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,20 +26,17 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @Qualifier("UserDbStorage")
+@RequiredArgsConstructor
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public UserDbStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
     @Override
     public List<User> findAll() {
-        return jdbcTemplate.query("select * from user", UserDbStorage::makeUser);
+        return jdbcTemplate.query("select * from user", this::makeUser);
     }
 
-    static User makeUser(ResultSet rs, int rowNum) throws SQLException {
+    private User makeUser(ResultSet rs, int rowNum) throws SQLException {
         return new User(
                 rs.getInt("user_id"),
                 rs.getString("email"),
@@ -76,7 +77,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User getUserById(int id) {
-        List<User> users = jdbcTemplate.query("select * from user where user_id=?", UserDbStorage::makeUser, id);
+        List<User> users = jdbcTemplate.query("select * from user where user_id=?", this::makeUser, id);
         if (!users.isEmpty()) {
             log.info("Найден пользователь: {} {}", users.get(0).getId(), users.get(0).getName());
             return users.get(0);
@@ -112,6 +113,7 @@ public class UserDbStorage implements UserStorage {
                     userId,
                     friendId);
         }
+        addEvent(new Event(userId, EventType.FRIEND, Operation.REMOVE, friendId));
         return getUserById(userId);
     }
 
@@ -130,6 +132,7 @@ public class UserDbStorage implements UserStorage {
                     userId, friendId,
                     userId, friendId);
         }
+        addEvent(new Event(userId, EventType.FRIEND, Operation.ADD, friendId));
         return getUserById(userId);
     }
 
@@ -146,6 +149,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getUserFriends(int userId) {
+        getUserById(userId);
         SqlRowSet userRows = jdbcTemplate.queryForRowSet("select u.* " +
                         "from user u " +
                         "where u.user_id in ( " +
@@ -179,5 +183,33 @@ public class UserDbStorage implements UserStorage {
         return targetFriends.stream()
                 .filter(userFriends::contains)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void removeUserById(int userId) {
+        getUserById(userId);
+        String sqlQuery = "delete from user " +
+                "where user_id = ?";
+        jdbcTemplate.update(sqlQuery, userId);
+        log.debug("Пользователь с ID = {} удален.", userId);
+    }
+
+    @Override
+    public List<Event> getFeed(int userId) {
+        getUserById(userId);
+        var sqlQuery = "select * from event where user_id = ? order by ts";
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> Event.builder()
+                .eventId(rs.getInt("event_id"))
+                .timestamp(rs.getLong("ts"))
+                .userId(rs.getInt("user_id"))
+                .eventType(rs.getString("event_type"))
+                .operation(rs.getString("operation"))
+                .entityId(rs.getInt("entity_id"))
+                .build(), userId);
+    }
+
+    @Override
+    public void addEvent(Event event) {
+        new SimpleJdbcInsert(jdbcTemplate).withTableName("event").execute(event.toMap());
     }
 }
