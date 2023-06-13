@@ -81,4 +81,8 @@ public class FilmService {
     private boolean isInvalidFilm(Film film) {
         return film.getReleaseDate().isBefore(MIN_POSSIBLE_DATE);
     }
+
+    public List<Film> getRecommendations(int userId) {
+        return filmStorage.getRecommendations(userId);
+    }
 }

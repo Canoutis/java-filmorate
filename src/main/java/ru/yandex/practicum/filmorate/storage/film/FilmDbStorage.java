@@ -372,4 +372,30 @@ public class FilmDbStorage implements FilmStorage {
         log.debug("Фильм с ID = {} удален.", filmId);
     }
 
+    @Override
+    public List<Film> getRecommendations(int userId) {
+        var sqlQuery = "SELECT *\n" +
+                "FROM FILM f \n" +
+                "JOIN MPA_RATING AS r ON r.RATING_ID = f.RATING_ID\n" +
+                "WHERE FILM_ID IN (SELECT l2.FILM_ID \n" +
+                "FROM LIKES AS l2 \n" +
+                "WHERE l2.USER_ID = (SELECT USER_ID\n" +
+                "FROM LIKES l \n" +
+                "WHERE USER_ID != " + userId + " AND FILM_ID IN (SELECT FILM_ID FROM LIKES l2 WHERE USER_ID = " + userId + ")\n" +
+                "GROUP BY USER_ID \n" +
+                "ORDER BY COUNT(FILM_ID) DESC \n" +
+                "LIMIT 1) AND l2.FILM_ID NOT IN \n" +
+                "(SELECT l.FILM_ID \n" +
+                "FROM LIKES AS l \n" +
+                "WHERE l.USER_ID = " + userId + "))";
+        List<Film> films = jdbcTemplate.query(sqlQuery, this::makeFilm);
+        Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
+        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
+        for (Film film : films) {
+            film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
+            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
+        }
+        return films;
+    }
+
 }

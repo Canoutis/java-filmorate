@@ -68,5 +68,4 @@ public class UserController {
     public List<Event> getFeed(@PathVariable int id) {
         return userService.getFeed(id);
     }
-
 }
