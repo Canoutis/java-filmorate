@@ -10,7 +10,11 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.storage.director.DirectorDao;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDao;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaRatingDao;
@@ -382,7 +386,7 @@ public class FilmDbStorage implements FilmStorage {
         log.debug("Фильм с ID = {} удален.", filmId);
     }
 
-@Override
+    @Override
     public List<Film> getRecommendations(int userId) {
         var sqlQuery = "SELECT *\n" +
                 "FROM FILM f \n" +
