@@ -342,6 +342,24 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getFilmsByUserId(int userId) {
+        String sql = "SELECT f.*, m.rating_id, m.rating_name " +
+                "FROM film f " +
+                "JOIN likes l ON l.film_id = f.film_id " +
+                "JOIN mpa_rating m ON f.rating_id = m.rating_id " +
+                "WHERE l.user_id = ?";
+        return jdbcTemplate.query(sql, this::makeFilm, userId);
+    }
+
+    @Override
+    public List<Film> getFilmsByFriendId(int friendId) {
+        String sql = "SELECT f.*, m.rating_id, m.rating_name " +
+                "FROM film f " +
+                "JOIN likes l ON l.film_id = f.film_id " +
+                "JOIN mpa_rating m ON f.rating_id = m.rating_id " +
+                "WHERE l.user_id = ?";
+        return jdbcTemplate.query(sql, this::makeFilm, friendId);
+    }
 
     public List<Film> getDirectorFilmsSortedByYear(int directorId) {
         directorDao.getDirectorById(directorId);
@@ -468,3 +486,4 @@ public class FilmDbStorage implements FilmStorage {
     }
 
 }
+

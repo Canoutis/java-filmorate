@@ -60,6 +60,12 @@ public class FilmController {
         filmService.removeFilmById(id);
     }
 
+    @GetMapping("/films/common")
+    public List<Film> getCommonFilms(@RequestParam("userId") int userId,
+                                     @RequestParam("friendId") int friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
+
     @GetMapping("/films/popular")
     public List<Film> getPopularFilms(@RequestParam(defaultValue = "10", required = false) int count,
                                       @RequestParam(defaultValue = "0", required = false) int genreId,
