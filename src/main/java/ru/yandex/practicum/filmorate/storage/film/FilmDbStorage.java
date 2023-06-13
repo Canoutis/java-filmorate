@@ -17,6 +17,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.storage.director.DirectorDao;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDao;
+import ru.yandex.practicum.filmorate.storage.mpa.MpaRatingDao;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.utils.Constant;
 import ru.yandex.practicum.filmorate.utils.EventType;
@@ -27,6 +28,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,7 @@ import java.util.stream.Collectors;
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final MpaRatingDao mpaRatingDao;
     private final GenreDao genreDao;
     private final DirectorDao directorDao;
     private final UserDbStorage userDbStorage;
@@ -424,6 +427,61 @@ public class FilmDbStorage implements FilmStorage {
             film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
             film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
         }
+        return films;
+    }
+
+    @Override
+    public List<Film> findByTitleContaining(String query) {
+        String sql = "SELECT F.*, m.rating_id, m.rating_name FROM FILM F " +
+                "JOIN mpa_rating m ON F.rating_id = m.rating_id " +
+                "WHERE LOWER(NAME) LIKE ?";
+        String param = "%" + query.toLowerCase() + "%";
+        List<Film> films = jdbcTemplate.query(sql, this::makeFilm, param);
+        Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
+        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
+        for (Film film : films) {
+            film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
+            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
+        }
+        return films;
+    }
+
+    @Override
+    public List<Film> findByDirectorContaining(String query) {
+        String sql = "SELECT F.*, m.rating_id, m.rating_name FROM FILM F" +
+                " JOIN FILM_DIRECTOR FD ON F.FILM_ID = FD.FILM_ID " +
+                "JOIN DIRECTOR D ON FD.DIRECTOR_ID = D.DIRECTOR_ID " +
+                "JOIN mpa_rating m ON F.rating_id = m.rating_id" +
+                " WHERE D.NAME LIKE ?";
+        String param = "%" + query.toLowerCase() + "%";
+        List<Film> films = jdbcTemplate.query(sql, this::makeFilm, param);
+        Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
+        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
+        for (Film film : films) {
+            film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
+            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
+        }
+        return films;
+    }
+
+    @Override
+    public List<Film> findByTitleContainingOrDirectorContaining(String titleQuery, String directorQuery) {
+        String sql = "SELECT F.*, m.rating_id, m.rating_name FROM FILM F " +
+                "LEFT JOIN FILM_DIRECTOR FD ON F.FILM_ID = FD.FILM_ID " +
+                "LEFT JOIN DIRECTOR D ON FD.DIRECTOR_ID = D.DIRECTOR_ID " +
+                "JOIN mpa_rating m ON F.rating_id = m.rating_id " +
+                "WHERE LOWER(F.NAME) LIKE ? OR LOWER(D.NAME) LIKE ?";
+        String titleParam = "%" + titleQuery.toLowerCase() + "%";
+        String directorParam = "%" + directorQuery.toLowerCase() + "%";
+        List<Film> films = jdbcTemplate.query(sql, this::makeFilm, titleParam, directorParam);
+        Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
+        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
+        for (Film film : films) {
+            film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
+            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
+        }
+        films.sort(Comparator.comparingInt(film -> film.getLikes().size()));
+        Collections.reverse(films);
         return films;
     }
 

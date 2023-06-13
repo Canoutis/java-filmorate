@@ -35,6 +35,12 @@ public interface FilmStorage {
 
     void removeFilmById(int filmId);
 
+    List<Film> findByTitleContaining(String query);
+
+    List<Film> findByDirectorContaining(String query);
+
+    List<Film> findByTitleContainingOrDirectorContaining(String titleQuery, String directorQuery);
+
     List<Film> getRecommendations(int userId);
 
 }

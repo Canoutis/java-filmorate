@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -9,12 +10,14 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 @Service
+@Slf4j
 public class FilmService {
 
     private final FilmStorage filmStorage;
@@ -99,7 +102,27 @@ public class FilmService {
         return film.getReleaseDate().isBefore(MIN_POSSIBLE_DATE);
     }
 
+    public List<Film> filmSearch(String query, String searchBy) {
+        List<Film> films;
+
+        if (searchBy.contains("title") && searchBy.contains("director")) {
+            films = filmStorage.findByTitleContainingOrDirectorContaining(query, query);
+            log.info("Поиск по названию и режиссеру = {}", query);
+        } else if (searchBy.equals("title")) {
+            films = filmStorage.findByTitleContaining(query);
+            log.info("Поиск по названию = {}", query);
+        } else if (searchBy.equals("director")) {
+            films = filmStorage.findByDirectorContaining(query);
+            log.info("Поиск по режиссеру = {}", query);
+        } else {
+            films = Collections.emptyList();
+            log.info("Поиск можно сделать только по режиссеру и названию");
+        }
+        return films;
+    }
+
     public List<Film> getRecommendations(int userId) {
         return filmStorage.getRecommendations(userId);
     }
+
 }
