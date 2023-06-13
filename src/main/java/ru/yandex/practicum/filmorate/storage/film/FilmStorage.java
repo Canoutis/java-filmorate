@@ -25,6 +25,10 @@ public interface FilmStorage {
 
     Film removeUserLike(int filmId, int userId);
 
+    List<Film> getFilmsByUserId(int userId);
+
+    List<Film> getFilmsByFriendId(int friendId);
+
     List<Film> getDirectorFilmsSortedByYear(int directorId);
 
     List<Film> getDirectorFilmsSortedByLikes(int directorId);

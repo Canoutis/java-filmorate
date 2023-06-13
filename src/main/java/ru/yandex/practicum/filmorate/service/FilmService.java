@@ -9,6 +9,9 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -76,6 +79,20 @@ public class FilmService {
 
     public void removeFilmById(int filmId) {
         filmStorage.removeFilmById(filmId);
+    }
+
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        List<Film> userFilms = filmStorage.getFilmsByUserId(userId);
+        List<Film> friendFilms = filmStorage.getFilmsByFriendId(friendId);
+
+        List<Film> commonFilms = new ArrayList<>();
+        for (Film film : userFilms) {
+            if (friendFilms.contains(film)) {
+                commonFilms.add(film);
+            }
+        }
+        Collections.sort(commonFilms, Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed());
+        return commonFilms;
     }
 
     private boolean isInvalidFilm(Film film) {
