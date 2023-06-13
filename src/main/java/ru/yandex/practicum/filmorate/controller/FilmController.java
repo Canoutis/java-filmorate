@@ -65,4 +65,10 @@ public class FilmController {
                                                     @RequestParam(required = false, defaultValue = "likes") String sortBy) {
         return filmService.getDirectorSortedPopularFilms(directorId, sortBy);
     }
+
+    @GetMapping(value = "/users/{id}/recommendations")
+    public List<Film> getRecommendations(@PathVariable int id) {
+        return filmService.getRecommendations(id);
+    }
+
 }
