@@ -100,7 +100,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     public List<Film> getFilmsByUserId(int userId) {
         return null;
     }
-  
+
     public List<Film> getDirectorFilmsSortedByYear(int directorId) {
         return null;
     }
@@ -109,7 +109,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     public List<Film> getFilmsByFriendId(int friendId) {
         return null;
     }
-  
+
     public List<Film> getDirectorFilmsSortedByLikes(int directorId) {
         return null;
     }
@@ -127,5 +127,5 @@ public class InMemoryFilmStorage implements FilmStorage {
     public List<Film> getRecommendations(int userId) {
         return null;
     }
-  
+
 }
