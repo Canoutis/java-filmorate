@@ -263,6 +263,12 @@ public class FilmDbStorage implements FilmStorage {
                         + "GROUP BY f.film_id, l.user_id "
                         + "ORDER BY COUNT(l.user_id) DESC "
                         + "LIMIT ?;", this::makeFilm, count);
+        Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
+        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
+        for (Film film : films) {
+            film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
+            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
+        }
         log.info("Получаем топ {} самых популярных фильмов.", count);
         return films;
     }
@@ -275,11 +281,13 @@ public class FilmDbStorage implements FilmStorage {
                 "inner join mpa_rating USING(rating_id)" +
                 "where EXTRACT(YEAR from release_date) = ? " +
                 "group by f.film_id " +
-                "order by COUNT(l.user_id) desc " +
+                "order by COUNT(l.user_id) desc, f.film_id " +
                 "limit ?", this::makeFilm, releaseYear, count);
         Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
+        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
         for (Film film : films) {
             film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
+            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
         }
         log.info("Получаем топ {} самых популярных фильмов c датой релиза: {} ", count, releaseYear);
         return films;
@@ -293,12 +301,14 @@ public class FilmDbStorage implements FilmStorage {
                 "join film_genre AS fg USING(film_id) " +
                 "inner join mpa_rating USING(rating_id)" +
                 "where fg.genre_id = ? " +
-                "group by f.film_id " +
-                "order by COUNT(l.user_id) desc " +
+                "group by f.film_id, f.name " +
+                "order by COUNT(l.user_id) desc, f.film_id " +
                 "limit ?", this::makeFilm, genreId, count);
         Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
+        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
         for (Film film : films) {
             film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
+            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
         }
         log.info("Получаем топ {} самых популярных фильмов. ID жанра :{}.", count, genreId);
         return films;
@@ -314,11 +324,13 @@ public class FilmDbStorage implements FilmStorage {
                 "where fg.genre_id = ? AND " +
                 "EXTRACT(YEAR from release_date) = ? " +
                 "group by f.film_id " +
-                "order by COUNT(l.user_id) desc " +
+                "order by COUNT(l.user_id) desc, f.film_id " +
                 "limit ?", this::makeFilm, genreId, releaseYear, count);
         Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
+        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
         for (Film film : films) {
             film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
+            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
         }
         log.info("Получаем топ {} самых популярных фильмов c ID жанра :{} и датой релиза {}. ", count, genreId, releaseYear);
         return films;
