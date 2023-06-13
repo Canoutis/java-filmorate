@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.storage.mpa;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -13,18 +12,21 @@ import java.util.List;
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
 public class MpaRatingDaoImpl implements MpaRatingDao {
     private final JdbcTemplate jdbcTemplate;
 
+    public MpaRatingDaoImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
     @Override
     public List<MpaRating> findAll() {
-        return jdbcTemplate.query("select * from mpa_rating", this::makeMpaRating);
+        return jdbcTemplate.query("select * from mpa_rating", MpaRatingDaoImpl::makeMpaRating);
     }
 
     @Override
     public MpaRating getMpaRatingById(int id) {
-        List<MpaRating> ratings = jdbcTemplate.query("select * from mpa_rating where rating_id=?", this::makeMpaRating, id);
+        List<MpaRating> ratings = jdbcTemplate.query("select * from mpa_rating where rating_id=?", MpaRatingDaoImpl::makeMpaRating, id);
         if (ratings.size() == 1) {
             log.info("Найден рейтинг: {} {}", ratings.get(0), ratings.get(0));
             return ratings.get(0);
@@ -39,7 +41,7 @@ public class MpaRatingDaoImpl implements MpaRatingDao {
         }
     }
 
-    private MpaRating makeMpaRating(ResultSet rs, int rowNum) throws SQLException {
+    static MpaRating makeMpaRating(ResultSet rs, int rowNum) throws SQLException {
         return new MpaRating(
                 rs.getInt("rating_id"),
                 rs.getString("rating_name"));

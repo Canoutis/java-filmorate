@@ -66,81 +66,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularByYear(int releaseYear, int count) {
-        return findAll()
-                .stream()
-                .sorted(Comparator.comparingInt(film -> -film.getLikes().size())).limit(count)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Film> getPopularByGenreAndYear(int genreId, int releaseYear, int count) {
-        return findAll()
-                .stream()
-                .sorted(Comparator.comparingInt(film -> -film.getLikes().size())).limit(count)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Film> getPopularByGenre(int genreId, int count) {
-        return findAll()
-                .stream()
-                .sorted(Comparator.comparingInt(film -> -film.getLikes().size())).limit(count)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public Film removeUserLike(int filmId, int userId) {
         Film film = getFilmById(filmId);
         film.getLikes().remove(userId);
         return film;
     }
-
-    @Override
-    public List<Film> getFilmsByUserId(int userId) {
-        return null;
-    }
-
-    public List<Film> getDirectorFilmsSortedByYear(int directorId) {
-        return null;
-    }
-
-    @Override
-    public List<Film> getFilmsByFriendId(int friendId) {
-        return null;
-    }
-
-    public List<Film> getDirectorFilmsSortedByLikes(int directorId) {
-        return null;
-    }
-
-    @Override
-    public void removeFilmById(int filmId) {
-        if (films.containsKey(filmId)) {
-            films.remove(filmId);
-        } else {
-            throw new ObjectNotFoundException(String.format("Фильм не найден! %x", filmId));
-        }
-    }
-
-    @Override
-    public List<Film> findByTitleContaining(String query) {
-        return null;
-    }
-
-    @Override
-    public List<Film> findByDirectorContaining(String query) {
-        return null;
-    }
-
-    @Override
-    public List<Film> findByTitleContainingOrDirectorContaining(String titleQuery, String directorQuery) {
-        return null;
-    }
-
-    @Override
-    public List<Film> getRecommendations(int userId) {
-        return null;
-    }
-
 }
