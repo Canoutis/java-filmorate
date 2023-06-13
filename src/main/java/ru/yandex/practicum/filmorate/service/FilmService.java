@@ -57,8 +57,16 @@ public class FilmService {
         return filmStorage.removeUserLike(filmId, userId);
     }
 
-    public List<Film> getPopularFilms(int count) {
-        return filmStorage.getPopularFilms(count);
+    public List<Film> getPopular(int count, int genreId, int year) {
+        if (genreId == 0 && year == 0) {
+            return filmStorage.getPopularFilms(count);
+        } else if (genreId != 0 && year != 0) {
+            return filmStorage.getPopularByGenreAndYear(genreId, year, count);
+        } else if (genreId != 0) {
+            return filmStorage.getPopularByGenre(genreId, count);
+        } else {
+            return filmStorage.getPopularByYear(year, count);
+        }
     }
 
     public List<Film> getDirectorSortedPopularFilms(int directorId, String sortBy) {
@@ -82,13 +90,13 @@ public class FilmService {
 
         if (searchBy.contains("title") && searchBy.contains("director")) {
             films = filmStorage.findByTitleContainingOrDirectorContaining(query, query);
-            log.info("Поиск по названию и режиссеру = {}",query);
+            log.info("Поиск по названию и режиссеру = {}", query);
         } else if (searchBy.equals("title")) {
             films = filmStorage.findByTitleContaining(query);
-            log.info("Поиск по названию = {}",query);
+            log.info("Поиск по названию = {}", query);
         } else if (searchBy.equals("director")) {
             films = filmStorage.findByDirectorContaining(query);
-            log.info("Поиск по режиссеру = {}",query);
+            log.info("Поиск по режиссеру = {}", query);
         } else {
             films = Collections.emptyList();
             log.info("Поиск можно сделать только по режиссеру и названию");
