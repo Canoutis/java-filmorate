@@ -19,7 +19,13 @@ import ru.yandex.practicum.filmorate.utils.Constant;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,7 +46,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findAll() {
-        List<Film> films = jdbcTemplate.query("select * from film f inner join mpa_rating m where f.rating_id = m.rating_id", FilmDbStorage::makeFilm);
+        List<Film> films = jdbcTemplate.query("select * from film f inner join mpa_rating m where f.rating_id = m.rating_id", this::makeFilm);
         Map<Integer, List<Genre>> filmGenresMap = loadFilmGenres(films);
         for (Film film : films) {
             film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
@@ -48,7 +54,7 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
-    static Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
+    private Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
         return new Film(
                 rs.getInt("film_id"),
                 rs.getString("name"),
@@ -113,7 +119,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilmById(int id) {
-        List<Film> films = jdbcTemplate.query("select * from film f inner join mpa_rating m where f.rating_id = m.rating_id and f.film_id=?", FilmDbStorage::makeFilm, id);
+        List<Film> films = jdbcTemplate.query("select * from film f inner join mpa_rating m where f.rating_id = m.rating_id and f.film_id=?", this::makeFilm, id);
         Map<Integer, List<Genre>> filmGenresMap = loadFilmGenres(films);
         if (!films.isEmpty()) {
             Film film = films.get(0);
@@ -217,24 +223,22 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getFilmsByUserId(int userId) {
-        String sql = "SELECT f.* FROM film f JOIN likes l ON l.film_id = f.film_id WHERE l.user_id = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> filmMapper(rs), userId);
+        String sql = "SELECT f.*, m.rating_id, m.rating_name " +
+                "FROM film f " +
+                "JOIN likes l ON l.film_id = f.film_id " +
+                "JOIN mpa_rating m ON f.rating_id = m.rating_id " +
+                "WHERE l.user_id = ?";
+        return jdbcTemplate.query(sql, this::makeFilm, userId);
     }
 
     @Override
     public List<Film> getFilmsByFriendId(int friendId) {
-        String sql = "SELECT f.* FROM film f JOIN likes l ON l.film_id = f.film_id WHERE l.user_id = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> filmMapper(rs), friendId);
-    }
-
-    private Film filmMapper(ResultSet rs) throws SQLException {
-        return new Film(
-                rs.getInt("film_id"),
-                rs.getString("name"),
-                rs.getString("description"),
-                Objects.requireNonNull(rs.getDate("release_date")).toLocalDate(),
-                rs.getInt("duration"),
-                mpaRatingDao.getMpaRatingById(rs.getInt("rating_id"))
-        );
+        String sql = "SELECT f.*, m.rating_id, m.rating_name " +
+                "FROM film f " +
+                "JOIN likes l ON l.film_id = f.film_id " +
+                "JOIN mpa_rating m ON f.rating_id = m.rating_id " +
+                "WHERE l.user_id = ?";
+        return jdbcTemplate.query(sql, this::makeFilm, friendId);
     }
 }
+
