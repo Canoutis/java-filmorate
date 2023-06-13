@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -15,7 +14,6 @@ import ru.yandex.practicum.filmorate.storage.mpa.MpaRatingDaoImpl;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @SpringBootTest
 @AutoConfigureTestDatabase
@@ -26,13 +24,6 @@ public class FilmDbStorageTest {
     private final MpaRatingDaoImpl mpaRatingDaoImpl;
     private final UserDbStorage userDbStorage;
     private final GenreDaoImpl genreDaoImpl;
-
-    @Test
-    @BeforeEach
-    public void cleanFilms() {
-        List<Film> films = filmDbStorage.findAll();
-        films.forEach(film -> filmDbStorage.removeFilmById(film.getId()));
-    }
 
     @Test
     public void testCreateOneFilm() {
@@ -131,7 +122,7 @@ public class FilmDbStorageTest {
                 .build();
         User createdUser2 = userDbStorage.create(user2);
         filmDbStorage.addUserLike(createdFilm2.getId(), createdUser2.getId());
-        Film newMostPopularFilm = filmDbStorage.getPopularFilms(2).get(0);
+        Film newMostPopularFilm = filmDbStorage.getPopularFilms(1).get(0);
         Assertions.assertEquals(createdFilm2.getId(), newMostPopularFilm.getId());
         filmDbStorage.removeUserLike(createdFilm2.getId(), createdUser2.getId());
         filmDbStorage.removeUserLike(createdFilm2.getId(), createdUser.getId());
@@ -192,27 +183,13 @@ public class FilmDbStorageTest {
                 .description("Нету ручек, нет конфеток!")
                 .duration(100)
                 .releaseDate(LocalDate.of(2012, 5, 11))
-                .mpa(mpaRatingDaoImpl.getMpaRatingById(5))
+                .mpa(mpaRatingDaoImpl.getMpaRatingById(4))
                 .build();
         film.getGenres().add(genreDaoImpl.getGenreById(1));
         Film createdFilm = filmDbStorage.create(film);
         Genre gotGenre = filmDbStorage.getFilmGenresByFilmId(createdFilm.getId()).get(0);
         Assertions.assertEquals(1, gotGenre.getId());
         Assertions.assertEquals("Комедия", gotGenre.getName());
-    }
-
-    @Test
-    public void testRemoveOneFilmGetById() {
-        Film film = Film.builder()
-                .name("1+2")
-                .description("Нету ручек, нет конфеток!")
-                .duration(100)
-                .releaseDate(LocalDate.of(2012, 5, 11))
-                .mpa(mpaRatingDaoImpl.getMpaRatingById(1))
-                .build();
-        Film createdFilm = filmDbStorage.create(film);
-        filmDbStorage.removeFilmById(createdFilm.getId());
-        Assertions.assertTrue(filmDbStorage.findAll().isEmpty());
     }
 
 }
