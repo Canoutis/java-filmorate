@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
+@Slf4j
 public class FilmService {
 
     private final FilmStorage filmStorage;
@@ -80,12 +82,16 @@ public class FilmService {
 
         if (searchBy.contains("title") && searchBy.contains("director")) {
             films = filmStorage.findByTitleContainingOrDirectorContaining(query, query);
+            log.info("Поиск по названию и режиссеру = {}",query);
         } else if (searchBy.equals("title")) {
             films = filmStorage.findByTitleContaining(query);
+            log.info("Поиск по названию = {}",query);
         } else if (searchBy.equals("director")) {
             films = filmStorage.findByDirectorContaining(query);
+            log.info("Поиск по режиссеру = {}",query);
         } else {
             films = Collections.emptyList();
+            log.info("Поиск можно сделать только по режиссеру и названию");
         }
 
         return films;
