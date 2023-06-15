@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
@@ -31,16 +30,10 @@ public class DirectorDaoImpl implements DirectorDao {
 
     @Override
     public Optional<Director> getDirectorById(int id) {
-        SqlRowSet directorRows = jdbcTemplate.queryForRowSet("select * from director where director_id = ?", id);
-
-        if (directorRows.next()) {
-            Director director = new Director(
-                    directorRows.getInt("director_id"),
-                    directorRows.getString("name"));
-
-            log.info("Найден режиссер: {} {}", director.getId(), director.getName());
-
-            return Optional.of(director);
+        List<Director> directors = jdbcTemplate.query("select * from director where director_id = ?", this::makeDirector, id);
+        if (!directors.isEmpty()) {
+            log.info("Найден режиссер: {} {}", directors.get(0).getId(), directors.get(0).getName());
+            return Optional.of(directors.get(0));
         } else {
             log.info("Режиссер с идентификатором {} не найден.", id);
             throw new ObjectNotFoundException(String.format("Режиссер с идентификатором %d не найден.", id));

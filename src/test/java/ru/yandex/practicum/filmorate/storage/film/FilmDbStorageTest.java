@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDaoImpl;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaRatingDaoImpl;
@@ -196,9 +195,8 @@ public class FilmDbStorageTest {
                 .build();
         film.getGenres().add(genreDaoImpl.getGenreById(1));
         Film createdFilm = filmDbStorage.create(film);
-        Genre gotGenre = filmDbStorage.getFilmGenresByFilmId(createdFilm.getId()).get(0);
-        Assertions.assertEquals(1, gotGenre.getId());
-        Assertions.assertEquals("Комедия", gotGenre.getName());
+        Assertions.assertEquals(1, createdFilm.getGenres().get(0).getId());
+        Assertions.assertEquals("Комедия", createdFilm.getGenres().get(0).getName());
     }
 
     @Test
