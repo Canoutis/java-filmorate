@@ -63,4 +63,5 @@ public class UserService {
     public List<Event> getFeed(int userId) {
         return userStorage.getFeed(userId);
     }
+
 }

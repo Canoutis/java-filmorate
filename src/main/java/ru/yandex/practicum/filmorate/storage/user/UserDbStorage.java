@@ -215,4 +215,5 @@ public class UserDbStorage implements UserStorage {
     public void addEvent(Event event) {
         new SimpleJdbcInsert(jdbcTemplate).withTableName("event").execute(event.toMap());
     }
+
 }
