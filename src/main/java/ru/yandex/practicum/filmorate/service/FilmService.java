@@ -93,7 +93,7 @@ public class FilmService {
                 commonFilms.add(film);
             }
         }
-        Collections.sort(commonFilms, Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed());
+        commonFilms.sort(Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed());
         return commonFilms;
     }
 
