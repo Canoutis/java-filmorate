@@ -252,7 +252,7 @@ public class FilmDbStorage implements FilmStorage {
                 "from film as f " +
                 "inner join mpa_rating as mr using(rating_id) " +
                 "left outer join likes as l using(film_id) " +
-                "group by f.film_id, l.user_id " +
+                "group by f.film_id " +
                 "order by count(l.user_id) desc, f.film_id " +
                 "limit ?";
         log.info("Получаем топ {} самых популярных фильмов.", count);
