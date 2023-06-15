@@ -28,7 +28,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -466,11 +465,15 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findByTitleContainingOrDirectorContaining(String titleQuery, String directorQuery) {
-        String sql = "SELECT F.*, m.rating_id, m.rating_name FROM FILM F " +
+        String sql = "SELECT F.*, m.rating_id, m.rating_name, COUNT(L.LIKE_ID) AS LIKE_COUNT " +
+                "FROM FILM F " +
                 "LEFT JOIN FILM_DIRECTOR FD ON F.FILM_ID = FD.FILM_ID " +
                 "LEFT JOIN DIRECTOR D ON FD.DIRECTOR_ID = D.DIRECTOR_ID " +
                 "JOIN mpa_rating m ON F.rating_id = m.rating_id " +
-                "WHERE LOWER(F.NAME) LIKE ? OR LOWER(D.NAME) LIKE ?";
+                "LEFT JOIN LIKES L ON F.FILM_ID = L.FILM_ID " +
+                "WHERE LOWER(F.NAME) LIKE ? OR LOWER(D.NAME) LIKE ? " +
+                "GROUP BY F.FILM_ID, M.RATING_ID, M.RATING_NAME " +
+                "ORDER BY LIKE_COUNT DESC";
         String titleParam = "%" + titleQuery.toLowerCase() + "%";
         String directorParam = "%" + directorQuery.toLowerCase() + "%";
         List<Film> films = jdbcTemplate.query(sql, this::makeFilm, titleParam, directorParam);
@@ -480,8 +483,6 @@ public class FilmDbStorage implements FilmStorage {
             film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
             film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
         }
-        films.sort(Comparator.comparingInt(film -> film.getLikes().size()));
-        Collections.reverse(films);
         return films;
     }
 
