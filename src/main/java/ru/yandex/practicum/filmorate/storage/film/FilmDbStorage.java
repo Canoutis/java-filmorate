@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.director.DirectorDao;
-import ru.yandex.practicum.filmorate.storage.genre.GenreDao;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.utils.Constant;
 import ru.yandex.practicum.filmorate.utils.EventType;
@@ -19,7 +18,14 @@ import ru.yandex.practicum.filmorate.utils.Operation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,7 +35,6 @@ import java.util.stream.Collectors;
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private final GenreDao genreDao;
     private final DirectorDao directorDao;
     private final UserDbStorage userDbStorage;
 
