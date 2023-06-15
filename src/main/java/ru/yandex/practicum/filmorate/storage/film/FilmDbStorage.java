@@ -248,13 +248,13 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopularFilms(int count) {
-        String sql = "SELECT f.*, mr.RATING_NAME "
-                + "FROM film AS f "
-                + "INNER JOIN MPA_RATING AS mr USING(RATING_ID) "
-                + "LEFT OUTER JOIN likes AS l USING(film_id) "
-                + "GROUP BY f.film_id, l.user_id "
-                + "ORDER BY COUNT(l.user_id) DESC "
-                + "LIMIT ?";
+        String sql = "select f.*, mr.rating_name " +
+                "from film as f " +
+                "inner join mpa_rating as mr using(rating_id) " +
+                "left outer join likes as l using(film_id) " +
+                "group by f.film_id, l.user_id " +
+                "order by count(l.user_id) desc, f.film_id " +
+                "limit ?";
         log.info("Получаем топ {} самых популярных фильмов.", count);
         return getPopularBySql(sql, count);
     }
@@ -265,9 +265,9 @@ public class FilmDbStorage implements FilmStorage {
                 "from film AS f " +
                 "left join likes AS l USING(film_id) " +
                 "inner join mpa_rating USING(rating_id)" +
-                "where EXTRACT(YEAR from release_date) = ? " +
-                "group by f.film_id " +
-                "order by COUNT(l.user_id) desc " +
+                "where extract(year from release_date) = ? " +
+                "group by f.film_id, f.name " +
+                "order by count(l.user_id) desc, f.film_id " +
                 "limit ?";
         log.info("Получаем топ {} самых популярных фильмов c датой релиза: {} ", count, releaseYear);
         return getPopularBySql(sql, releaseYear, count);
@@ -276,13 +276,13 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getPopularByGenre(int genreId, int count) {
         String sql = "select f.*, mpa_rating.rating_name " +
-                "from film AS f " +
-                "left join likes AS l USING(film_id) " +
-                "join film_genre AS fg USING(film_id) " +
-                "inner join mpa_rating USING(rating_id)" +
+                "from film as f " +
+                "left join likes as l using(film_id) " +
+                "join film_genre as fg using(film_id) " +
+                "inner join mpa_rating using(rating_id)" +
                 "where fg.genre_id = ? " +
-                "group by f.film_id " +
-                "order by COUNT(l.user_id) desc " +
+                "group by f.film_id, f.name " +
+                "order by count(l.user_id) desc, f.film_id " +
                 "limit ?";
         log.info("Получаем топ {} самых популярных фильмов. ID жанра :{}.", count, genreId);
         return getPopularBySql(sql, genreId, count);
@@ -291,14 +291,14 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getPopularByGenreAndYear(int genreId, int releaseYear, int count) {
         String sql = "select f.*, mpa_rating.rating_name " +
-                "from film AS f " +
-                "left join likes AS l USING(film_id) " +
-                "join film_genre AS fg USING(film_id) " +
-                "inner join mpa_rating USING(rating_id)" +
-                "where fg.genre_id = ? AND " +
-                "EXTRACT(YEAR from release_date) = ? " +
-                "group by f.film_id " +
-                "order by COUNT(l.user_id) desc " +
+                "from film as f " +
+                "left join likes as l using(film_id) " +
+                "join film_genre as fg using(film_id) " +
+                "inner join mpa_rating using(rating_id)" +
+                "where fg.genre_id = ? and " +
+                "extract(year from release_date) = ? " +
+                "group by f.film_id, f.name " +
+                "order by count(l.user_id) desc, f.film_id " +
                 "limit ?";
         log.info("Получаем топ {} самых популярных фильмов c ID жанра :{} и датой релиза {}. ", count, genreId, releaseYear);
         return getPopularBySql(sql, genreId, releaseYear, count);
