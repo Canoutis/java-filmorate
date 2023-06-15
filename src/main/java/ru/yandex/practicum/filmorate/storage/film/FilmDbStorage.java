@@ -9,8 +9,14 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ObjectUpdateException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.storage.director.DirectorDao;
+import ru.yandex.practicum.filmorate.storage.genre.GenreDao;
+import ru.yandex.practicum.filmorate.storage.mpa.MpaRatingDao;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.utils.Constant;
 import ru.yandex.practicum.filmorate.utils.EventType;
@@ -18,7 +24,6 @@ import ru.yandex.practicum.filmorate.utils.Operation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +40,8 @@ import java.util.stream.Collectors;
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final MpaRatingDao mpaRatingDao;
+    private final GenreDao genreDao;
     private final DirectorDao directorDao;
     private final UserDbStorage userDbStorage;
 
@@ -241,13 +248,13 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopularFilms(int count) {
-        String sql = "SELECT f.*, mr.RATING_NAME "
-                + "FROM film AS f "
-                + "INNER JOIN MPA_RATING AS mr USING(RATING_ID) "
-                + "LEFT OUTER JOIN likes AS l USING(film_id) "
-                + "GROUP BY f.film_id, l.user_id "
-                + "ORDER BY COUNT(l.user_id) DESC "
-                + "LIMIT ?";
+        String sql = "select f.*, mr.rating_name " +
+                "from film as f " +
+                "inner join mpa_rating as mr using(rating_id) " +
+                "left outer join likes as l using(film_id) " +
+                "group by f.film_id " +
+                "order by count(l.user_id) desc, f.film_id " +
+                "limit ?";
         log.info("Получаем топ {} самых популярных фильмов.", count);
         return getPopularBySql(sql, count);
     }
@@ -258,9 +265,9 @@ public class FilmDbStorage implements FilmStorage {
                 "from film AS f " +
                 "left join likes AS l USING(film_id) " +
                 "inner join mpa_rating USING(rating_id)" +
-                "where EXTRACT(YEAR from release_date) = ? " +
-                "group by f.film_id " +
-                "order by COUNT(l.user_id) desc " +
+                "where extract(year from release_date) = ? " +
+                "group by f.film_id, f.name " +
+                "order by count(l.user_id) desc, f.film_id " +
                 "limit ?";
         log.info("Получаем топ {} самых популярных фильмов c датой релиза: {} ", count, releaseYear);
         return getPopularBySql(sql, releaseYear, count);
@@ -269,13 +276,13 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getPopularByGenre(int genreId, int count) {
         String sql = "select f.*, mpa_rating.rating_name " +
-                "from film AS f " +
-                "left join likes AS l USING(film_id) " +
-                "join film_genre AS fg USING(film_id) " +
-                "inner join mpa_rating USING(rating_id)" +
+                "from film as f " +
+                "left join likes as l using(film_id) " +
+                "join film_genre as fg using(film_id) " +
+                "inner join mpa_rating using(rating_id)" +
                 "where fg.genre_id = ? " +
-                "group by f.film_id " +
-                "order by COUNT(l.user_id) desc " +
+                "group by f.film_id, f.name " +
+                "order by count(l.user_id) desc, f.film_id " +
                 "limit ?";
         log.info("Получаем топ {} самых популярных фильмов. ID жанра :{}.", count, genreId);
         return getPopularBySql(sql, genreId, count);
@@ -284,14 +291,14 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getPopularByGenreAndYear(int genreId, int releaseYear, int count) {
         String sql = "select f.*, mpa_rating.rating_name " +
-                "from film AS f " +
-                "left join likes AS l USING(film_id) " +
-                "join film_genre AS fg USING(film_id) " +
-                "inner join mpa_rating USING(rating_id)" +
-                "where fg.genre_id = ? AND " +
-                "EXTRACT(YEAR from release_date) = ? " +
-                "group by f.film_id " +
-                "order by COUNT(l.user_id) desc " +
+                "from film as f " +
+                "left join likes as l using(film_id) " +
+                "join film_genre as fg using(film_id) " +
+                "inner join mpa_rating using(rating_id)" +
+                "where fg.genre_id = ? and " +
+                "extract(year from release_date) = ? " +
+                "group by f.film_id, f.name " +
+                "order by count(l.user_id) desc, f.film_id " +
                 "limit ?";
         log.info("Получаем топ {} самых популярных фильмов c ID жанра :{} и датой релиза {}. ", count, genreId, releaseYear);
         return getPopularBySql(sql, genreId, releaseYear, count);
@@ -451,11 +458,15 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findByTitleContainingOrDirectorContaining(String titleQuery, String directorQuery) {
-        String sql = "SELECT F.*, m.rating_id, m.rating_name FROM FILM F " +
+        String sql = "SELECT F.*, m.rating_id, m.rating_name, COUNT(L.LIKE_ID) AS LIKE_COUNT " +
+                "FROM FILM F " +
                 "LEFT JOIN FILM_DIRECTOR FD ON F.FILM_ID = FD.FILM_ID " +
                 "LEFT JOIN DIRECTOR D ON FD.DIRECTOR_ID = D.DIRECTOR_ID " +
                 "JOIN mpa_rating m ON F.rating_id = m.rating_id " +
-                "WHERE LOWER(F.NAME) LIKE ? OR LOWER(D.NAME) LIKE ?";
+                "LEFT JOIN LIKES L ON F.FILM_ID = L.FILM_ID " +
+                "WHERE LOWER(F.NAME) LIKE ? OR LOWER(D.NAME) LIKE ? " +
+                "GROUP BY F.FILM_ID, M.RATING_ID, M.RATING_NAME " +
+                "ORDER BY LIKE_COUNT DESC";
         String titleParam = "%" + titleQuery.toLowerCase() + "%";
         String directorParam = "%" + directorQuery.toLowerCase() + "%";
         List<Film> films = jdbcTemplate.query(sql, this::makeFilm, titleParam, directorParam);
@@ -465,9 +476,7 @@ public class FilmDbStorage implements FilmStorage {
             film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
             film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
         }
-        Collections.reverse(films);
         return films;
     }
-
 }
 
