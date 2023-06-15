@@ -46,10 +46,13 @@ public class UserService {
     }
 
     public List<User> getUserFriends(int userId) {
+        getUserById(userId);
         return userStorage.getUserFriends(userId);
     }
 
     public List<User> getMutualFriends(int userId, int targetId) {
+        getUserById(userId);
+        getUserById(targetId);
         return userStorage.getMutualFriends(userId, targetId);
     }
 
