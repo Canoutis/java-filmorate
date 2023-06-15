@@ -254,68 +254,49 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopularFilms(int count) {
-        List<Film> films = jdbcTemplate.query(
-                "SELECT f.*, mr.RATING_NAME "
-                        + "FROM film AS f "
-                        + "INNER JOIN MPA_RATING AS mr USING(RATING_ID) "
-                        + "LEFT OUTER JOIN likes AS l USING(film_id) "
-                        + "GROUP BY f.film_id, l.user_id "
-                        + "ORDER BY COUNT(l.user_id) DESC "
-                        + "LIMIT ?;", this::makeFilm, count);
-        Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
-        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
-        for (Film film : films) {
-            film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
-            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
-        }
+        String sql = "SELECT f.*, mr.RATING_NAME "
+                + "FROM film AS f "
+                + "INNER JOIN MPA_RATING AS mr USING(RATING_ID) "
+                + "LEFT OUTER JOIN likes AS l USING(film_id) "
+                + "GROUP BY f.film_id, l.user_id "
+                + "ORDER BY COUNT(l.user_id) DESC "
+                + "LIMIT ?";
         log.info("Получаем топ {} самых популярных фильмов.", count);
-        return films;
+        return getPopularBySql(sql, count);
     }
 
     @Override
     public List<Film> getPopularByYear(int releaseYear, int count) {
-        List<Film> films = jdbcTemplate.query("select f.*, mpa_rating.rating_name " +
+        String sql = "select f.*, mpa_rating.rating_name " +
                 "from film AS f " +
                 "left join likes AS l USING(film_id) " +
                 "inner join mpa_rating USING(rating_id)" +
                 "where EXTRACT(YEAR from release_date) = ? " +
                 "group by f.film_id " +
-                "order by COUNT(l.user_id) desc, f.film_id " +
-                "limit ?", this::makeFilm, releaseYear, count);
-        Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
-        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
-        for (Film film : films) {
-            film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
-            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
-        }
+                "order by COUNT(l.user_id) desc " +
+                "limit ?";
         log.info("Получаем топ {} самых популярных фильмов c датой релиза: {} ", count, releaseYear);
-        return films;
+        return getPopularBySql(sql, releaseYear, count);
     }
 
     @Override
     public List<Film> getPopularByGenre(int genreId, int count) {
-        List<Film> films = jdbcTemplate.query("select f.*, mpa_rating.rating_name " +
+        String sql = "select f.*, mpa_rating.rating_name " +
                 "from film AS f " +
                 "left join likes AS l USING(film_id) " +
                 "join film_genre AS fg USING(film_id) " +
                 "inner join mpa_rating USING(rating_id)" +
                 "where fg.genre_id = ? " +
-                "group by f.film_id, f.name " +
-                "order by COUNT(l.user_id) desc, f.film_id " +
-                "limit ?", this::makeFilm, genreId, count);
-        Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
-        Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
-        for (Film film : films) {
-            film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
-            film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
-        }
+                "group by f.film_id " +
+                "order by COUNT(l.user_id) desc " +
+                "limit ?";
         log.info("Получаем топ {} самых популярных фильмов. ID жанра :{}.", count, genreId);
-        return films;
+        return getPopularBySql(sql, genreId, count);
     }
 
     @Override
     public List<Film> getPopularByGenreAndYear(int genreId, int releaseYear, int count) {
-        List<Film> films = jdbcTemplate.query("select f.*, mpa_rating.rating_name " +
+        String sql = "select f.*, mpa_rating.rating_name " +
                 "from film AS f " +
                 "left join likes AS l USING(film_id) " +
                 "join film_genre AS fg USING(film_id) " +
@@ -323,15 +304,12 @@ public class FilmDbStorage implements FilmStorage {
                 "where fg.genre_id = ? AND " +
                 "EXTRACT(YEAR from release_date) = ? " +
                 "group by f.film_id " +
-                "order by COUNT(l.user_id) desc, f.film_id " +
-                "limit ?", this::makeFilm, genreId, releaseYear, count);
         Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
         Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
         for (Film film : films) {
             film.getGenres().addAll(filmGenresMap.getOrDefault(film.getId(), new ArrayList<>()));
             film.getDirectors().addAll(filmDirectorsMap.getOrDefault(film.getId(), new ArrayList<>()));
         }
-        log.info("Получаем топ {} самых популярных фильмов c ID жанра :{} и датой релиза {}. ", count, genreId, releaseYear);
         return films;
     }
 
@@ -372,6 +350,7 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sql, this::makeFilm, friendId);
     }
 
+    @Override
     public List<Film> getDirectorFilmsSortedByYear(int directorId) {
         directorDao.getDirectorById(directorId);
         List<Film> films = jdbcTemplate.query("select * " +
@@ -497,6 +476,5 @@ public class FilmDbStorage implements FilmStorage {
         }
         return films;
     }
-
 }
 
