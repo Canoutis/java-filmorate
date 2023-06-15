@@ -25,10 +25,21 @@ public interface FilmStorage {
 
     Film removeUserLike(int filmId, int userId);
 
+    List<Film> getFilmsByUserId(int userId);
+
+    List<Film> getFilmsByFriendId(int friendId);
+
     List<Film> getDirectorFilmsSortedByYear(int directorId);
 
     List<Film> getDirectorFilmsSortedByLikes(int directorId);
 
     void removeFilmById(int filmId);
 
+    List<Film> findByTitleContaining(String query);
+
+    List<Film> findByDirectorContaining(String query);
+
+    List<Film> findByTitleContainingOrDirectorContaining(String titleQuery, String directorQuery);
+
+    List<Film> getRecommendations(int userId);
 }
