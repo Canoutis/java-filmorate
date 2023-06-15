@@ -11,9 +11,6 @@ import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.model.Event;
-import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.utils.EventType;
 import ru.yandex.practicum.filmorate.utils.Operation;
 
@@ -28,7 +25,6 @@ public class ReviewDaoImpl implements ReviewDao {
     private final JdbcTemplate jdbcTemplate;
     private final UserDbStorage userDbStorage;
     private final FilmDbStorage filmDbStorage;
-    private String sqlQuery;
 
     @Override
     public Review createReview(Review review) {
@@ -45,7 +41,7 @@ public class ReviewDaoImpl implements ReviewDao {
     @Override
     public Review updateReview(Review review) {
         var reviewEx = getReviewById(review.getReviewId());
-        sqlQuery = "update review set content = ?, is_positive = ? where review_id = ?";
+        var sqlQuery = "update review set content = ?, is_positive = ? where review_id = ?";
         jdbcTemplate.update(sqlQuery, review.getContent(), review.getIsPositive(), review.getReviewId());
         userDbStorage.addEvent(new Event(reviewEx.getUserId(), EventType.REVIEW, Operation.UPDATE, review.getReviewId()));
         return getReviewById(review.getReviewId());
@@ -55,13 +51,13 @@ public class ReviewDaoImpl implements ReviewDao {
     public void removeReview(Integer reviewId) {
         var review = getReviewById(reviewId);
         userDbStorage.addEvent(new Event(review.getUserId(), EventType.REVIEW, Operation.REMOVE, review.getReviewId()));
-        sqlQuery = "delete from review where review_id = ?";
+        var sqlQuery = "delete from review where review_id = ?";
         jdbcTemplate.update(sqlQuery, reviewId);
     }
 
     @Override
     public Review getReviewById(Integer reviewId) {
-        sqlQuery = "select * from review where review_id = ?";
+        var sqlQuery = "select * from review where review_id = ?";
         var rowMapper = BeanPropertyRowMapper.newInstance(Review.class);
         var reviews = jdbcTemplate.query(sqlQuery, rowMapper, reviewId);
         if (reviews.size() == 1)
@@ -77,10 +73,10 @@ public class ReviewDaoImpl implements ReviewDao {
     public List<Review> findReviews(Integer filmId, Integer count) {
         var rowMapper = BeanPropertyRowMapper.newInstance(Review.class);
         if (filmId != null) {
-            sqlQuery = "select * from review where film_id = ? order by useful desc, review_id limit ?";
+            var sqlQuery = "select * from review where film_id = ? order by useful desc, review_id limit ?";
             return new LinkedList<>(jdbcTemplate.query(sqlQuery, rowMapper, filmId, count));
         } else {
-            sqlQuery = "select * from review order by useful desc";
+            var sqlQuery = "select * from review order by useful desc";
             return new LinkedList<>(jdbcTemplate.query(sqlQuery, rowMapper));
         }
     }
@@ -108,7 +104,7 @@ public class ReviewDaoImpl implements ReviewDao {
     private void addFeedback(Integer reviewId, Integer userId, Boolean isUseful) {
         getReviewById(reviewId);
         userDbStorage.getUserById(userId);
-        sqlQuery = "insert into feedback (review_id, user_id, is_useful) VALUES (?, ?, ?)";
+        var sqlQuery = "insert into feedback (review_id, user_id, is_useful) VALUES (?, ?, ?)";
         jdbcTemplate.update(sqlQuery, reviewId, userId, isUseful);
         changeUseful(reviewId, isUseful ? 1 : -1);
     }
@@ -116,14 +112,14 @@ public class ReviewDaoImpl implements ReviewDao {
     private void removeFeedback(Integer reviewId, Integer userId, Boolean isUseful) {
         getReviewById(reviewId);
         userDbStorage.getUserById(userId);
-        sqlQuery = "delete from feedback where user_id = ? and user_id = ? and is_useful = ?";
+        var sqlQuery = "delete from feedback where user_id = ? and user_id = ? and is_useful = ?";
         jdbcTemplate.update(sqlQuery, reviewId, userId, isUseful);
         changeUseful(reviewId, isUseful ? -1 : 1);
     }
 
     private void changeUseful(Integer reviewId, Integer delta) {
         var review = getReviewById(reviewId);
-        sqlQuery = "update review set useful = ? where review_id = ?";
+        var sqlQuery = "update review set useful = ? where review_id = ?";
         jdbcTemplate.update(sqlQuery, review.getUseful() + delta, reviewId);
     }
 }
