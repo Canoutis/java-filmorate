@@ -42,5 +42,4 @@ public interface FilmStorage {
     List<Film> findByTitleContainingOrDirectorContaining(String titleQuery, String directorQuery);
 
     List<Film> getRecommendations(int userId);
-
 }
