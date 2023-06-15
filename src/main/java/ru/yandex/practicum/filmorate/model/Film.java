@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -44,5 +45,4 @@ public class Film {
         values.put("rating_id", mpa.getId());
         return values;
     }
-
 }

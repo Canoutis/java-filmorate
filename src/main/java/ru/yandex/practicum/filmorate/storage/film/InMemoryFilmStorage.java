@@ -97,11 +97,19 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getFilmsByUserId(int userId) {
+        return null;
+    }
+
     public List<Film> getDirectorFilmsSortedByYear(int directorId) {
         return null;
     }
 
     @Override
+    public List<Film> getFilmsByFriendId(int friendId) {
+        return null;
+    }
+
     public List<Film> getDirectorFilmsSortedByLikes(int directorId) {
         return null;
     }
@@ -114,4 +122,25 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new ObjectNotFoundException(String.format("Фильм не найден! %x", filmId));
         }
     }
+
+    @Override
+    public List<Film> findByTitleContaining(String query) {
+        return null;
+    }
+
+    @Override
+    public List<Film> findByDirectorContaining(String query) {
+        return null;
+    }
+
+    @Override
+    public List<Film> findByTitleContainingOrDirectorContaining(String titleQuery, String directorQuery) {
+        return null;
+    }
+
+    @Override
+    public List<Film> getRecommendations(int userId) {
+        return null;
+    }
+
 }
