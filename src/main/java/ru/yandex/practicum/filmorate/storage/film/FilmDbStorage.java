@@ -304,6 +304,14 @@ public class FilmDbStorage implements FilmStorage {
                 "where fg.genre_id = ? AND " +
                 "EXTRACT(YEAR from release_date) = ? " +
                 "group by f.film_id " +
+                "order by COUNT(l.user_id) desc " +
+                "limit ?";
+        log.info("Получаем топ {} самых популярных фильмов c ID жанра :{} и датой релиза {}. ", count, genreId, releaseYear);
+        return getPopularBySql(sql, genreId, releaseYear, count);
+    }
+
+    private List<Film> getPopularBySql(String sql, Object... args) {
+        List<Film> films = jdbcTemplate.query(sql, this::makeFilm, args);
         Map<Integer, List<Genre>> filmGenresMap = loadFilmsGenres(films);
         Map<Integer, List<Director>> filmDirectorsMap = loadFilmsDirectors(films);
         for (Film film : films) {
