@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private final GenreDao genreDao;
     private final DirectorDao directorDao;
     private final UserDbStorage userDbStorage;
 
@@ -452,7 +451,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findByTitleContainingOrDirectorContaining(String titleQuery, String directorQuery) {
-        String sql = "SELECT F.*, m.rating_id, m.rating_name, COUNT(L.LIKE_ID) AS LIKE_COUNT " +
+        String sql = "SELECT F.*, m.rating_id, m.rating_name, COUNT(L.USER_ID) AS LIKE_COUNT " +
                 "FROM FILM F " +
                 "LEFT JOIN FILM_DIRECTOR FD ON F.FILM_ID = FD.FILM_ID " +
                 "LEFT JOIN DIRECTOR D ON FD.DIRECTOR_ID = D.DIRECTOR_ID " +
